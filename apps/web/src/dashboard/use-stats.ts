@@ -11,14 +11,26 @@ export type Stats = {
   phrasesDue: number;
 };
 
+type Phase = { status: 'loading' } | { status: 'error' } | { status: 'ready'; stats: Stats };
+
 export function useStats() {
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [phase, setPhase] = useState<Phase>({ status: 'loading' });
+
+  async function load() {
+    setPhase({ status: 'loading' });
+    const res = await apiFetch('/stats');
+
+    if (!res.ok) {
+      setPhase({ status: 'error' });
+      return;
+    }
+
+    setPhase({ status: 'ready', stats: await res.json() });
+  }
 
   useEffect(() => {
-    apiFetch('/stats')
-      .then((res) => res.json())
-      .then(setStats);
+    load();
   }, []);
 
-  return stats;
+  return { phase, retry: load };
 }

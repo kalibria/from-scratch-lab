@@ -11,11 +11,24 @@ type DashboardProps = {
 };
 
 export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }: DashboardProps) {
-  const stats = useStats();
+  const { phase, retry } = useStats();
 
-  if (!stats) {
+  if (phase.status === 'loading') {
     return <Spinner />;
   }
+
+  if (phase.status === 'error') {
+    return (
+      <div className="mx-auto max-w-sm px-5 py-8 text-center">
+        <p className="mb-5 text-ink-soft">Couldn't load your stats.</p>
+        <button onClick={retry} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const { stats } = phase;
 
   async function handleStart() {
     const session = await startSession(15);
