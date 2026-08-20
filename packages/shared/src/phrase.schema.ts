@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const createPhraseSchema = z.object({
   enText: z.string().min(1),
   ruGloss: z.string().optional(),
+  usageNote: z.string().optional(),
   source: z.enum(['manual', 'free_talk']),
 });
 
@@ -20,6 +21,7 @@ export const bulkAddPhrasesSchema = z.object({
       z.object({
         enText: z.string().min(1),
         ruGloss: z.string().optional(),
+        usageNote: z.string().optional(),
       }),
     )
     .min(1),

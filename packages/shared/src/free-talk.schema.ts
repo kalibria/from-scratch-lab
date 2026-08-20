@@ -15,6 +15,7 @@ export const confirmPhrasesSchema = z.object({
       z.object({
         enText: z.string().min(1),
         ruGloss: z.string().optional(),
+        usageNote: z.string().optional(),
       }),
     )
     .min(1),

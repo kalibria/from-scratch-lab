@@ -56,8 +56,11 @@ export function AddPhrase({ onDone }: AddPhraseProps) {
             >
               <input type="checkbox" checked={selected.has(p.enText)} onChange={() => toggle(p.enText)} />
               <span className="text-sm">
-                {p.enText}
-                {p.ruGloss ? ` — ${p.ruGloss}` : ''}
+                <span>
+                  {p.enText}
+                  {p.ruGloss ? ` — ${p.ruGloss}` : ''}
+                </span>
+                {p.usageNote ? <span className="mt-0.5 block text-xs text-ink-soft">{p.usageNote}</span> : null}
               </span>
             </label>
           ))}

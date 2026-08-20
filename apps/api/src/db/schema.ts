@@ -4,6 +4,7 @@ export const phrases = pgTable('phrases', {
   id: serial('id').primaryKey(),
   enText: text('en_text').notNull(),
   ruGloss: text('ru_gloss'),
+  usageNote: text('usage_note'),
   source: text('source').notNull(),
   errorTags: text('error_tags').array(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

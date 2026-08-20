@@ -29,7 +29,16 @@ const ANALYSIS_TOOL = {
             type: 'object',
             properties: {
               enText: { type: 'string' },
-              ruGloss: { type: 'string' },
+              ruGloss: {
+                type: 'string',
+                description:
+                  'A natural, idiomatic Russian equivalent — how a Russian speaker would actually phrase the same idea, not a literal word-for-word translation.',
+              },
+              usageNote: {
+                type: 'string',
+                description:
+                  'One short sentence in Russian explaining when/in what situation this phrase is used.',
+              },
             },
             required: ['enText'],
           },
@@ -44,7 +53,7 @@ export type FreeTalkAnalysis = {
   grammar: string;
   naturalness: string;
   fluency: string;
-  suggestedPhrases: { enText: string; ruGloss?: string }[];
+  suggestedPhrases: { enText: string; ruGloss?: string; usageNote?: string }[];
 };
 
 export async function analyzeFreeTalk(promptTopic: string, userResponse: string): Promise<FreeTalkAnalysis> {
@@ -55,7 +64,7 @@ export async function analyzeFreeTalk(promptTopic: string, userResponse: string)
         {
           role: 'system',
           content:
-            'You are a native English-speaking tutor for a Russian-speaking B1-B2 learner. Analyze their free-talk response on three axes: grammar correctness, naturalness (native-like phrasing vs. literal Russian calque), and fluency. Suggest native-sounding phrases worth memorizing.',
+            'You are a native English-speaking tutor for a Russian-speaking B1-B2 learner. Analyze their free-talk response on three axes: grammar correctness, naturalness (native-like phrasing vs. literal Russian calque), and fluency. Suggest native-sounding phrases worth memorizing, each with a natural (not literal) Russian equivalent and a short usage note.',
         },
         { role: 'user', content: `Topic: "${promptTopic}". Learner's response: "${userResponse}".` },
       ],

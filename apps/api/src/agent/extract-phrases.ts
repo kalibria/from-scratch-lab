@@ -15,7 +15,16 @@ const EXTRACT_TOOL = {
             type: 'object',
             properties: {
               enText: { type: 'string' },
-              ruGloss: { type: 'string' },
+              ruGloss: {
+                type: 'string',
+                description:
+                  'A natural, idiomatic Russian equivalent — how a Russian speaker would actually phrase the same idea, not a literal word-for-word translation.',
+              },
+              usageNote: {
+                type: 'string',
+                description:
+                  'One short sentence in Russian explaining when/in what situation this phrase is used, so the learner understands the context, not just the translation.',
+              },
             },
             required: ['enText'],
           },
@@ -26,7 +35,7 @@ const EXTRACT_TOOL = {
   },
 };
 
-export type ExtractedPhrase = { enText: string; ruGloss?: string };
+export type ExtractedPhrase = { enText: string; ruGloss?: string; usageNote?: string };
 
 export async function extractPhrases(text: string): Promise<ExtractedPhrase[]> {
   return withObservability('extractPhrases', async () => {
@@ -36,7 +45,7 @@ export async function extractPhrases(text: string): Promise<ExtractedPhrase[]> {
         {
           role: 'system',
           content:
-            'You help a Russian-speaking B1-B2 English learner build a vocabulary deck. Extract distinct useful English phrases/collocations from the given text. If the text is already a list of phrases, just clean it up. Provide a short Russian gloss for each.',
+            'You help a Russian-speaking B1-B2 English learner build a vocabulary deck. Extract distinct useful English phrases/collocations from the given text. If the text is already a list of phrases, just clean it up. For each, give a natural idiomatic Russian equivalent (not a literal translation) plus a short usage note explaining the context.',
         },
         { role: 'user', content: text },
       ],

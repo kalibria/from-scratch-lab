@@ -14,4 +14,5 @@ export type Phrase = {
 export type SuggestedPhrase = {
   enText: string;
   ruGloss?: string;
+  usageNote?: string;
 };

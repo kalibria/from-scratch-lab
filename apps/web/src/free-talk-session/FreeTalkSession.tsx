@@ -139,8 +139,11 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
           <ul className="flex flex-col gap-1.5 text-sm">
             {analysis.suggestedPhrases.map((p) => (
               <li key={p.enText}>
-                {p.enText}
-                {p.ruGloss ? ` — ${p.ruGloss}` : ''}
+                <span>
+                  {p.enText}
+                  {p.ruGloss ? ` — ${p.ruGloss}` : ''}
+                </span>
+                {p.usageNote ? <span className="mt-0.5 block text-xs text-ink-soft">{p.usageNote}</span> : null}
               </li>
             ))}
           </ul>

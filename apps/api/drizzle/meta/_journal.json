@@ -15,6 +15,13 @@
       "when": 1787125790308,
       "tag": "0001_violet_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787228223765,
+      "tag": "0002_flaky_wong",
+      "breakpoints": true
     }
   ]
 }
