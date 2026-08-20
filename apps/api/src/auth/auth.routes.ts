@@ -10,13 +10,11 @@ authRouter.post('/login', (req, res) => {
     return res.status(401).json({ error: 'invalid pin' });
   }
 
-  const isProd = Boolean(process.env.WEB_ORIGIN);
-
   res.cookie('session', 'authenticated', {
     httpOnly: true,
     signed: true,
-    sameSite: isProd ? 'none' : 'lax',
-    secure: isProd,
+    sameSite: 'lax',
+    secure: Boolean(process.env.WEB_ORIGIN),
     maxAge: 1000 * 60 * 60 * 24 * 30,
   });
   res.status(204).end();
