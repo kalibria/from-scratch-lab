@@ -13,7 +13,9 @@ import { errorHandler } from './error-handler.middleware.js';
 
 const app = express();
 
-app.use(cors({ origin: process.env.WEB_ORIGIN ?? /^http:\/\/localhost:\d+$/, credentials: true }));
+const allowedOrigins = process.env.WEB_ORIGIN?.split(',').map((origin) => origin.trim());
+
+app.use(cors({ origin: allowedOrigins ?? /^http:\/\/localhost:\d+$/, credentials: true }));
 app.use(express.json());
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
