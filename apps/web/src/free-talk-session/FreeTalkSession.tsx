@@ -3,6 +3,7 @@ import { useCountdown } from '../components/use-countdown.js';
 import { formatSpeakingTimer } from '../components/format-speaking-timer.js';
 import { SessionTimer } from '../components/SessionTimer.js';
 import { Spinner } from '../components/Spinner.js';
+import { MicButton } from '../components/MicButton.js';
 import { getSessionDeadline } from '../session-deadline.js';
 import type { Session, SuggestedPhrase } from '../types.js';
 
@@ -96,19 +97,22 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
         <div className="mb-5 rounded-2xl border border-border bg-surface-soft px-5 py-6 font-serif text-lg">
           {phase.prompt}
         </div>
-        <textarea
-          value={response}
-          onChange={(event) => setResponse(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              submitResponse();
-            }
-          }}
-          rows={5}
-          className="mb-4 w-full rounded-2xl border border-border px-4 py-3"
-          autoFocus
-        />
+        <div className="mb-4 flex items-start gap-2">
+          <textarea
+            value={response}
+            onChange={(event) => setResponse(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submitResponse();
+              }
+            }}
+            rows={5}
+            className="w-full rounded-2xl border border-border px-4 py-3"
+            autoFocus
+          />
+          <MicButton onTranscript={(text) => setResponse((prev) => (prev ? `${prev} ${text}` : text))} />
+        </div>
         <button
           onClick={() => submitResponse()}
           className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white"

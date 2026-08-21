@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDrillSession } from './use-drill-session.js';
 import { SessionTimer } from '../components/SessionTimer.js';
 import { Spinner } from '../components/Spinner.js';
+import { MicButton } from '../components/MicButton.js';
 import { getSessionDeadline } from '../session-deadline.js';
 import type { Session } from '../types.js';
 
@@ -95,21 +96,24 @@ export function DrillSession({ session, onFinish }: DrillSessionProps) {
 
       {phase.status === 'answering' && (
         <>
-          <textarea
-            value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                if (answer.trim()) {
-                  submitAnswer(answer);
+          <div className="mb-4 flex items-start gap-2">
+            <textarea
+              value={answer}
+              onChange={(event) => setAnswer(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  if (answer.trim()) {
+                    submitAnswer(answer);
+                  }
                 }
-              }
-            }}
-            rows={2}
-            className="mb-4 w-full resize-none rounded-2xl border border-border px-4 py-3"
-            autoFocus
-          />
+              }}
+              rows={2}
+              className="w-full resize-none rounded-2xl border border-border px-4 py-3"
+              autoFocus
+            />
+            <MicButton onTranscript={(text) => setAnswer((prev) => (prev ? `${prev} ${text}` : text))} />
+          </div>
           <button
             onClick={() => submitAnswer(answer)}
             disabled={!answer.trim()}
