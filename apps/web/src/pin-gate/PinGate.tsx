@@ -4,16 +4,30 @@ import { useAuth } from './use-auth.js';
 import { Spinner } from '../components/Spinner.js';
 
 export function PinGate({ children }: { children: ReactNode }) {
-  const { status, login } = useAuth();
+  const { status, login, retry } = useAuth();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
 
   if (status === 'checking') {
-    return <Spinner />;
+    return <Spinner message="Waking up the server... this can take a minute." />;
   }
 
   if (status === 'authenticated') {
     return <>{children}</>;
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center px-5 text-center">
+        <p className="mb-5 text-ink-soft">Couldn't reach the server.</p>
+        <button
+          onClick={retry}
+          className="w-full max-w-xs rounded-2xl bg-accent px-4 py-3 font-semibold text-white"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   async function handleSubmit(event: FormEvent) {
