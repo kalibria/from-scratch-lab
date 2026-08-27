@@ -31,7 +31,7 @@ export function App() {
       {view.name === 'free-talk' && (
         <FreeTalkSession
           session={view.session}
-          onComplete={(suggestedPhrases) => setView({ name: 'drill', session: view.session, suggestedPhrases })}
+          onComplete={(suggestedPhrases, session) => setView({ name: 'drill', session, suggestedPhrases })}
         />
       )}
       {view.name === 'drill' && (

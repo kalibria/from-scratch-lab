@@ -7,11 +7,22 @@ import { MicButton } from '../components/MicButton.js';
 import { getSessionDeadline } from '../session-deadline.js';
 import type { Session, SuggestedPhrase } from '../types.js';
 
-type FreeTalkSessionProps = { session: Session; onComplete: (suggestedPhrases: SuggestedPhrase[]) => void };
+type FreeTalkSessionProps = {
+  session: Session;
+  onComplete: (suggestedPhrases: SuggestedPhrase[], session: Session) => void;
+};
 
 export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
-  const { phase, response, setResponse, answerDeadline, startAnswering, submitResponse, retry } =
-    useFreeTalkSession(session);
+  const {
+    phase,
+    response,
+    setResponse,
+    answerDeadline,
+    startAnswering,
+    submitResponse,
+    retry,
+    getSessionAfterReadingPause,
+  } = useFreeTalkSession(session);
   const answerRemainingMs = useCountdown(answerDeadline);
   const speakingTimer = formatSpeakingTimer(answerRemainingMs);
 
@@ -30,7 +41,7 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
         <button onClick={retry} className="mb-3 w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
           Try a new topic
         </button>
-        <button onClick={() => onComplete([])} className="w-full text-sm text-ink-soft underline">
+        <button onClick={() => onComplete([], session)} className="w-full text-sm text-ink-soft underline">
           Skip and go to drill
         </button>
       </div>
@@ -44,7 +55,7 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
         <button onClick={retry} className="mb-3 w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
           Retry
         </button>
-        <button onClick={() => onComplete([])} className="w-full text-sm text-ink-soft underline">
+        <button onClick={() => onComplete([], session)} className="w-full text-sm text-ink-soft underline">
           Skip and go to drill
         </button>
       </div>
@@ -127,10 +138,6 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
 
   return (
     <div className="mx-auto max-w-sm px-5 py-8">
-      <div className="mb-4">
-        <SessionTimer deadline={getSessionDeadline(session)} />
-      </div>
-
       <p className="mb-4 text-sm text-ink-soft">Feedback</p>
 
       {analysis.grammar && <Section title="Grammar" text={analysis.grammar} />}
@@ -155,7 +162,7 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
       )}
 
       <button
-        onClick={() => onComplete(analysis.suggestedPhrases)}
+        onClick={() => onComplete(analysis.suggestedPhrases, getSessionAfterReadingPause())}
         className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white"
       >
         Next

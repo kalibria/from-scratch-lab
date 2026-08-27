@@ -26,6 +26,7 @@ export function useFreeTalkSession(session: Session) {
   const [answerDeadline, setAnswerDeadline] = useState(() => new Date(Date.now() + ANSWER_SECONDS * 1000));
   const submittedRef = useRef(false);
   const requestIdRef = useRef(0);
+  const resultEnteredAtRef = useRef<number | null>(null);
 
   async function loadPrompt() {
     const requestId = ++requestIdRef.current;
@@ -88,7 +89,26 @@ export function useFreeTalkSession(session: Session) {
     }
 
     setPhase({ status: 'result', analysis: await res.json() });
+    resultEnteredAtRef.current = Date.now();
   }
 
-  return { phase, response, setResponse, answerDeadline, startAnswering, submitResponse, retry: loadPrompt };
+  function getSessionAfterReadingPause(): Session {
+    if (resultEnteredAtRef.current === null) {
+      return session;
+    }
+
+    const pausedMinutes = (Date.now() - resultEnteredAtRef.current) / 60000;
+    return { ...session, plannedMinutes: session.plannedMinutes + pausedMinutes };
+  }
+
+  return {
+    phase,
+    response,
+    setResponse,
+    answerDeadline,
+    startAnswering,
+    submitResponse,
+    retry: loadPrompt,
+    getSessionAfterReadingPause,
+  };
 }

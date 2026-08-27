@@ -18,6 +18,7 @@ export const srsState = pgTable('srs_state', {
   intervalDays: integer('interval_days').notNull().default(0),
   nextReviewAt: timestamp('next_review_at').defaultNow().notNull(),
   correctStreak: integer('correct_streak').notNull().default(0),
+  failStreak: integer('fail_streak').notNull().default(0),
   lastResult: text('last_result'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

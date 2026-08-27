@@ -1,0 +1,1 @@
+ALTER TABLE "srs_state" ADD COLUMN "fail_streak" integer DEFAULT 0 NOT NULL;
