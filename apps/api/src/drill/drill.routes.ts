@@ -90,9 +90,13 @@ drillRouter.post('/attempt', async (req, res) => {
     return res.status(404).json({ error: 'srs state not found' });
   }
 
+  const isExactMatch = userAnswer.trim().toLowerCase() === phrase.enText.trim().toLowerCase();
+
   const { verdict, feedback, nativePhrase } = revealed
     ? { verdict: 'incorrect' as const, feedback: 'Answer revealed.', nativePhrase: phrase.enText }
-    : await evaluateDrillAnswer(phrase.enText, userAnswer);
+    : isExactMatch
+      ? { verdict: 'correct' as const, feedback: 'Exact match.', nativePhrase: phrase.enText }
+      : await evaluateDrillAnswer(phrase.enText, userAnswer);
   const nextState = computeNextSrsState(currentSrs, verdict, new Date());
 
   const wasStruggling = currentSrs.lastResult === 'incorrect' || currentSrs.lastResult === 'close';
