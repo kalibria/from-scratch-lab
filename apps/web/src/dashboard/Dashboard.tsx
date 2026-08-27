@@ -2,10 +2,10 @@ import { useStats } from './use-stats.js';
 import { startSession } from './start-session.js';
 import { StatCard } from '../components/StatCard.js';
 import { Spinner } from '../components/Spinner.js';
-import type { Session } from '../types.js';
+import type { Session, SessionMode } from '../types.js';
 
 type DashboardProps = {
-  onStartSession: (session: Session) => void;
+  onStartSession: (session: Session, mode: SessionMode) => void;
   onOpenAgentDashboard: () => void;
   onAddPhrase: () => void;
 };
@@ -30,9 +30,9 @@ export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }:
 
   const { stats } = phase;
 
-  async function handleStart() {
+  async function handleStart(mode: SessionMode) {
     const session = await startSession(15);
-    onStartSession(session);
+    onStartSession(session, mode);
   }
 
   return (
@@ -51,12 +51,27 @@ export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }:
       </div>
 
       <button
-        onClick={handleStart}
+        onClick={() => handleStart('combined')}
         className="mt-6 w-full rounded-2xl bg-accent px-4 py-4 text-center font-semibold text-white"
       >
         Start session
-        <span className="block text-xs font-normal opacity-85">15 minutes</span>
+        <span className="block text-xs font-normal opacity-85">15 minutes · talk + practice</span>
       </button>
+
+      <div className="mt-2.5 flex gap-2.5">
+        <button
+          onClick={() => handleStart('free-talk')}
+          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
+        >
+          Just talk
+        </button>
+        <button
+          onClick={() => handleStart('drill')}
+          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
+        >
+          Just practice
+        </button>
+      </div>
 
       <button onClick={onAddPhrase} className="mt-3.5 w-full text-center text-sm text-ink-soft underline">
         Add phrase manually

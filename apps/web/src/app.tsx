@@ -6,11 +6,11 @@ import { DrillSession } from './drill-session/DrillSession.js';
 import { SessionSummary } from './session-summary/SessionSummary.js';
 import { AddPhrase } from './add-phrase/AddPhrase.js';
 import { AgentDashboard } from './agent-dashboard/AgentDashboard.js';
-import type { Session, SuggestedPhrase } from './types.js';
+import type { Session, SessionMode, SuggestedPhrase } from './types.js';
 
 type View =
   | { name: 'dashboard' }
-  | { name: 'free-talk'; session: Session }
+  | { name: 'free-talk'; session: Session; mode: SessionMode }
   | { name: 'drill'; session: Session; suggestedPhrases: SuggestedPhrase[] }
   | { name: 'session-summary'; session: Session; suggestedPhrases: SuggestedPhrase[]; comebackPhrases: string[] }
   | { name: 'agent-dashboard' }
@@ -23,7 +23,11 @@ export function App() {
     <PinGate>
       {view.name === 'dashboard' && (
         <Dashboard
-          onStartSession={(session) => setView({ name: 'free-talk', session })}
+          onStartSession={(session, mode) =>
+            mode === 'drill'
+              ? setView({ name: 'drill', session, suggestedPhrases: [] })
+              : setView({ name: 'free-talk', session, mode })
+          }
           onOpenAgentDashboard={() => setView({ name: 'agent-dashboard' })}
           onAddPhrase={() => setView({ name: 'add-phrase' })}
         />
@@ -31,7 +35,11 @@ export function App() {
       {view.name === 'free-talk' && (
         <FreeTalkSession
           session={view.session}
-          onComplete={(suggestedPhrases, session) => setView({ name: 'drill', session, suggestedPhrases })}
+          onComplete={(suggestedPhrases, session) =>
+            view.mode === 'free-talk'
+              ? setView({ name: 'session-summary', session, suggestedPhrases, comebackPhrases: [] })
+              : setView({ name: 'drill', session, suggestedPhrases })
+          }
         />
       )}
       {view.name === 'drill' && (

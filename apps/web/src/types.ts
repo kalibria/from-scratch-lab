@@ -5,6 +5,8 @@ export type Session = {
   plannedMinutes: number;
 };
 
+export type SessionMode = 'combined' | 'free-talk' | 'drill';
+
 export type Phrase = {
   id: number;
   enText: string;
