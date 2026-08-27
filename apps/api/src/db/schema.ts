@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, timestamp, jsonb, boolean } from 'drizzle-orm/pg-core';
 
 export const phrases = pgTable('phrases', {
   id: serial('id').primaryKey(),
@@ -40,6 +40,7 @@ export const drillAttempts = pgTable('drill_attempts', {
   userAnswer: text('user_answer').notNull(),
   verdict: text('verdict').notNull(),
   agentFeedback: text('agent_feedback'),
+  wasNew: boolean('was_new').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

@@ -40,7 +40,7 @@ export function useDrillSession(session: Session) {
     }
 
     setPhase({ status: 'loading' });
-    const res = await apiFetch('/drill/next');
+    const res = await apiFetch(`/drill/next?sessionId=${session.id}`);
 
     if (requestIdRef.current !== requestId) {
       return;

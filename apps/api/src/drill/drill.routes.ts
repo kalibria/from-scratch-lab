@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { asc, eq, lte } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNull, lte, type SQL } from 'drizzle-orm';
 import { submitDrillAttemptSchema } from '@app/shared';
 import { db } from '../db/client.js';
 import { phrases, srsState, drillAttempts } from '../db/schema.js';
@@ -8,20 +8,67 @@ import { computeNextSrsState } from '../srs/compute-next-srs-state.js';
 
 export const drillRouter = Router();
 
-drillRouter.get('/next', async (_req, res) => {
-  const [due] = await db
-    .select({ phrase: phrases, srs: srsState })
+const NEW_PHRASE_POOL_SIZE = 30;
+const MAX_NEW_PHRASES_PER_SESSION = 5;
+
+async function selectDuePhrase(extraCondition: SQL, orderBy: SQL) {
+  const [row] = await db
+    .select({ phrase: phrases })
     .from(srsState)
     .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
-    .where(lte(srsState.nextReviewAt, new Date()))
-    .orderBy(asc(srsState.nextReviewAt))
+    .where(and(lte(srsState.nextReviewAt, new Date()), extraCondition))
+    .orderBy(orderBy)
     .limit(1);
 
-  if (!due) {
+  return row?.phrase ?? null;
+}
+
+async function selectNewPhrase() {
+  const pool = await db
+    .select({ phrase: phrases })
+    .from(srsState)
+    .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
+    .where(and(lte(srsState.nextReviewAt, new Date()), isNull(srsState.lastResult)))
+    .orderBy(desc(phrases.createdAt))
+    .limit(NEW_PHRASE_POOL_SIZE);
+
+  if (pool.length === 0) {
+    return null;
+  }
+
+  return pool[Math.floor(Math.random() * pool.length)].phrase;
+}
+
+async function selectNewPhraseIfUnderCap(sessionId: number) {
+  if (!Number.isInteger(sessionId)) {
+    return selectNewPhrase();
+  }
+
+  const [{ value }] = await db
+    .select({ value: count() })
+    .from(drillAttempts)
+    .where(and(eq(drillAttempts.sessionId, sessionId), eq(drillAttempts.wasNew, true)));
+
+  if (value >= MAX_NEW_PHRASES_PER_SESSION) {
+    return null;
+  }
+
+  return selectNewPhrase();
+}
+
+drillRouter.get('/next', async (req, res) => {
+  const sessionId = Number(req.query.sessionId);
+
+  const phrase =
+    (await selectDuePhrase(inArray(srsState.lastResult, ['incorrect', 'close']), asc(srsState.nextReviewAt))) ??
+    (await selectDuePhrase(eq(srsState.lastResult, 'correct'), asc(srsState.nextReviewAt))) ??
+    (await selectNewPhraseIfUnderCap(sessionId));
+
+  if (!phrase) {
     return res.status(204).end();
   }
 
-  res.json(due.phrase);
+  res.json(phrase);
 });
 
 drillRouter.post('/attempt', async (req, res) => {
@@ -51,7 +98,14 @@ drillRouter.post('/attempt', async (req, res) => {
 
   await db.transaction(async (tx) => {
     await tx.update(srsState).set(nextState).where(eq(srsState.phraseId, phraseId));
-    await tx.insert(drillAttempts).values({ sessionId, phraseId, userAnswer, verdict, agentFeedback: feedback });
+    await tx.insert(drillAttempts).values({
+      sessionId,
+      phraseId,
+      userAnswer,
+      verdict,
+      agentFeedback: feedback,
+      wasNew: currentSrs.lastResult === null,
+    });
   });
 
   res.json({ verdict, feedback, nativePhrase, nextReviewAt: nextState.nextReviewAt, improvedFromPrevious });

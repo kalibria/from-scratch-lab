@@ -1,0 +1,1 @@
+ALTER TABLE "drill_attempts" ADD COLUMN "was_new" boolean DEFAULT false NOT NULL;
