@@ -63,7 +63,7 @@ export function useDrillSession(session: Session) {
     fetchNext();
   }, []);
 
-  async function submitAnswer(userAnswer: string) {
+  async function submitAttempt(userAnswer: string, revealed: boolean) {
     if (phase.status !== 'answering') {
       return;
     }
@@ -73,7 +73,7 @@ export function useDrillSession(session: Session) {
 
     const res = await apiFetch('/drill/attempt', {
       method: 'POST',
-      body: JSON.stringify({ sessionId: session.id, phraseId: currentPhrase.id, userAnswer }),
+      body: JSON.stringify({ sessionId: session.id, phraseId: currentPhrase.id, userAnswer, revealed }),
     });
 
     if (!res.ok) {
@@ -97,6 +97,14 @@ export function useDrillSession(session: Session) {
     });
   }
 
+  function submitAnswer(userAnswer: string) {
+    return submitAttempt(userAnswer, false);
+  }
+
+  function revealAnswer() {
+    return submitAttempt('', true);
+  }
+
   function continueWithoutTimer() {
     setTimerDisabled(true);
     fetchNext();
@@ -108,6 +116,7 @@ export function useDrillSession(session: Session) {
     comebackPhrases,
     fetchNext,
     submitAnswer,
+    revealAnswer,
     continueWithoutTimer,
     requestExit: () => setShowExitConfirm(true),
     cancelExit: () => setShowExitConfirm(false),

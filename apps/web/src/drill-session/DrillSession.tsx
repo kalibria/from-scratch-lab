@@ -9,8 +9,17 @@ import type { Session } from '../types.js';
 type DrillSessionProps = { session: Session; onFinish: (comebackPhrases: string[]) => void };
 
 export function DrillSession({ session, onFinish }: DrillSessionProps) {
-  const { phase, showExitConfirm, comebackPhrases, fetchNext, submitAnswer, continueWithoutTimer, requestExit, cancelExit } =
-    useDrillSession(session);
+  const {
+    phase,
+    showExitConfirm,
+    comebackPhrases,
+    fetchNext,
+    submitAnswer,
+    revealAnswer,
+    continueWithoutTimer,
+    requestExit,
+    cancelExit,
+  } = useDrillSession(session);
   const [answer, setAnswer] = useState('');
   const finish = () => onFinish(comebackPhrases);
 
@@ -120,6 +129,15 @@ export function DrillSession({ session, onFinish }: DrillSessionProps) {
             className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white disabled:opacity-50"
           >
             Answer
+          </button>
+          <button
+            onClick={() => {
+              setAnswer('');
+              revealAnswer();
+            }}
+            className="mt-3 w-full text-center text-sm text-ink-soft underline"
+          >
+            I don't know — show answer
           </button>
         </>
       )}
