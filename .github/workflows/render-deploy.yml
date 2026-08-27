@@ -1,0 +1,18 @@
+name: Deploy API to Render
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
