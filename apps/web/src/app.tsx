@@ -6,12 +6,12 @@ import { DrillSession } from './drill-session/DrillSession.js';
 import { SessionSummary } from './session-summary/SessionSummary.js';
 import { AddPhrase } from './add-phrase/AddPhrase.js';
 import { AgentDashboard } from './agent-dashboard/AgentDashboard.js';
-import type { Session, SessionMode, SuggestedPhrase } from './types.js';
+import type { Session, SessionMode, StudyTopic, SuggestedPhrase } from './types.js';
 
 type View =
   | { name: 'dashboard' }
-  | { name: 'free-talk'; session: Session; mode: SessionMode }
-  | { name: 'drill'; session: Session; suggestedPhrases: SuggestedPhrase[] }
+  | { name: 'free-talk'; session: Session; mode: SessionMode; topics: StudyTopic[] }
+  | { name: 'drill'; session: Session; suggestedPhrases: SuggestedPhrase[]; topics: StudyTopic[] }
   | { name: 'session-summary'; session: Session; suggestedPhrases: SuggestedPhrase[]; comebackPhrases: string[] }
   | { name: 'agent-dashboard' }
   | { name: 'add-phrase' };
@@ -23,10 +23,10 @@ export function App() {
     <PinGate>
       {view.name === 'dashboard' && (
         <Dashboard
-          onStartSession={(session, mode) =>
+          onStartSession={(session, mode, topics) =>
             mode === 'drill'
-              ? setView({ name: 'drill', session, suggestedPhrases: [] })
-              : setView({ name: 'free-talk', session, mode })
+              ? setView({ name: 'drill', session, suggestedPhrases: [], topics })
+              : setView({ name: 'free-talk', session, mode, topics })
           }
           onOpenAgentDashboard={() => setView({ name: 'agent-dashboard' })}
           onAddPhrase={() => setView({ name: 'add-phrase' })}
@@ -38,13 +38,14 @@ export function App() {
           onComplete={(suggestedPhrases, session) =>
             view.mode === 'free-talk'
               ? setView({ name: 'session-summary', session, suggestedPhrases, comebackPhrases: [] })
-              : setView({ name: 'drill', session, suggestedPhrases })
+              : setView({ name: 'drill', session, suggestedPhrases, topics: view.topics })
           }
         />
       )}
       {view.name === 'drill' && (
         <DrillSession
           session={view.session}
+          topics={view.topics}
           onFinish={(comebackPhrases) =>
             setView({
               name: 'session-summary',

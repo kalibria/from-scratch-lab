@@ -4,11 +4,15 @@ import { SessionTimer } from '../components/SessionTimer.js';
 import { Spinner } from '../components/Spinner.js';
 import { MicButton } from '../components/MicButton.js';
 import { getSessionDeadline } from '../session-deadline.js';
-import type { Session } from '../types.js';
+import type { Session, StudyTopic } from '../types.js';
 
-type DrillSessionProps = { session: Session; onFinish: (comebackPhrases: string[]) => void };
+type DrillSessionProps = {
+  session: Session;
+  topics: StudyTopic[];
+  onFinish: (comebackPhrases: string[]) => void;
+};
 
-export function DrillSession({ session, onFinish }: DrillSessionProps) {
+export function DrillSession({ session, topics, onFinish }: DrillSessionProps) {
   const {
     phase,
     showExitConfirm,
@@ -19,7 +23,7 @@ export function DrillSession({ session, onFinish }: DrillSessionProps) {
     continueWithoutTimer,
     requestExit,
     cancelExit,
-  } = useDrillSession(session);
+  } = useDrillSession(session, topics);
   const [answer, setAnswer] = useState('');
   const finish = () => onFinish(comebackPhrases);
 

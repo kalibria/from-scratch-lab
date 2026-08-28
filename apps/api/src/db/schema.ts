@@ -5,6 +5,7 @@ export const phrases = pgTable('phrases', {
   enText: text('en_text').notNull(),
   ruGloss: text('ru_gloss'),
   usageNote: text('usage_note'),
+  category: text('category'),
   source: text('source').notNull(),
   errorTags: text('error_tags').array(),
   createdAt: timestamp('created_at').defaultNow().notNull(),

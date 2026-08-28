@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../api-client.js';
 import { isTimeUp } from './is-time-up.js';
 import { getSessionDeadline } from '../session-deadline.js';
-import type { Phrase, Session } from '../types.js';
+import type { Phrase, Session, StudyTopic } from '../types.js';
 
 type Verdict = 'correct' | 'incorrect' | 'close';
 
@@ -22,7 +22,7 @@ type Phase =
   | { status: 'time-up' }
   | { status: 'error' };
 
-export function useDrillSession(session: Session) {
+export function useDrillSession(session: Session, topics: StudyTopic[]) {
   const [phase, setPhase] = useState<Phase>({ status: 'loading' });
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [timerDisabled, setTimerDisabled] = useState(false);
@@ -40,7 +40,8 @@ export function useDrillSession(session: Session) {
     }
 
     setPhase({ status: 'loading' });
-    const res = await apiFetch(`/drill/next?sessionId=${session.id}`);
+    const topicsQuery = topics.length > 0 ? `&topics=${topics.join(',')}` : '';
+    const res = await apiFetch(`/drill/next?sessionId=${session.id}${topicsQuery}`);
 
     if (requestIdRef.current !== requestId) {
       return;

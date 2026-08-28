@@ -1,17 +1,26 @@
+import { useState } from 'react';
 import { useStats } from './use-stats.js';
 import { startSession } from './start-session.js';
 import { StatCard } from '../components/StatCard.js';
 import { Spinner } from '../components/Spinner.js';
-import type { Session, SessionMode } from '../types.js';
+import type { Session, SessionMode, StudyTopic } from '../types.js';
 
 type DashboardProps = {
-  onStartSession: (session: Session, mode: SessionMode) => void;
+  onStartSession: (session: Session, mode: SessionMode, topics: StudyTopic[]) => void;
   onOpenAgentDashboard: () => void;
   onAddPhrase: () => void;
 };
 
+const TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
+  { value: 'collocation', label: 'Collocations' },
+  { value: 'phrasal_verb', label: 'Phrasal verbs' },
+  { value: 'idiom', label: 'Idioms' },
+  { value: 'free_talk', label: 'From free-talk' },
+];
+
 export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }: DashboardProps) {
   const { phase, retry } = useStats();
+  const [topics, setTopics] = useState<StudyTopic[]>([]);
 
   if (phase.status === 'loading') {
     return <Spinner />;
@@ -30,9 +39,13 @@ export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }:
 
   const { stats } = phase;
 
+  function toggleTopic(topic: StudyTopic) {
+    setTopics((prev) => (prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]));
+  }
+
   async function handleStart(mode: SessionMode) {
     const session = await startSession(15);
-    onStartSession(session, mode);
+    onStartSession(session, mode, topics);
   }
 
   return (
@@ -50,9 +63,28 @@ export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }:
         <StatCard label="Total hours" value={(stats.totalMinutes / 60).toFixed(1)} />
       </div>
 
+      <p className="mt-6 mb-2 text-sm text-ink-soft">Focus on (optional):</p>
+      <div className="flex flex-wrap gap-2">
+        {TOPIC_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => toggleTopic(option.value)}
+            aria-pressed={topics.includes(option.value)}
+            className={`rounded-full border px-3.5 py-2 text-sm font-medium ${
+              topics.includes(option.value)
+                ? 'border-accent bg-accent-soft text-accent'
+                : 'border-border text-ink-soft'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
       <button
         onClick={() => handleStart('combined')}
-        className="mt-6 w-full rounded-2xl bg-accent px-4 py-4 text-center font-semibold text-white"
+        className="mt-4 w-full rounded-2xl bg-accent px-4 py-4 text-center font-semibold text-white"
       >
         Start session
         <span className="block text-xs font-normal opacity-85">15 minutes · talk + practice</span>

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { and, asc, count, desc, eq, inArray, isNull, lte, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, inArray, isNull, lte, or, type SQL } from 'drizzle-orm';
 import { submitDrillAttemptSchema } from '@app/shared';
 import { db } from '../db/client.js';
 import { phrases, srsState, drillAttempts } from '../db/schema.js';
@@ -10,25 +10,47 @@ export const drillRouter = Router();
 
 const NEW_PHRASE_POOL_SIZE = 30;
 const MAX_NEW_PHRASES_PER_SESSION = 5;
+const CATEGORIES = ['collocation', 'phrasal_verb', 'idiom'] as const;
+type Category = (typeof CATEGORIES)[number];
 
-async function selectDuePhrase(extraCondition: SQL, orderBy: SQL) {
+function parseTopicFilter(raw: unknown): SQL | undefined {
+  const values = typeof raw === 'string' ? raw.split(',') : [];
+  const categories = values.filter((v): v is Category => (CATEGORIES as readonly string[]).includes(v));
+  const includeFreeTalk = values.includes('free_talk');
+
+  if (categories.length === 0 && !includeFreeTalk) {
+    return undefined;
+  }
+
+  const conditions: SQL[] = [];
+  if (categories.length > 0) {
+    conditions.push(inArray(phrases.category, categories));
+  }
+  if (includeFreeTalk) {
+    conditions.push(eq(phrases.source, 'free_talk'));
+  }
+
+  return or(...conditions);
+}
+
+async function selectDuePhrase(extraCondition: SQL, orderBy: SQL, topicFilter: SQL | undefined) {
   const [row] = await db
     .select({ phrase: phrases })
     .from(srsState)
     .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
-    .where(and(lte(srsState.nextReviewAt, new Date()), extraCondition))
+    .where(and(lte(srsState.nextReviewAt, new Date()), extraCondition, topicFilter))
     .orderBy(orderBy)
     .limit(1);
 
   return row?.phrase ?? null;
 }
 
-async function selectNewPhrase() {
+async function selectNewPhrase(topicFilter: SQL | undefined) {
   const pool = await db
     .select({ phrase: phrases })
     .from(srsState)
     .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
-    .where(and(lte(srsState.nextReviewAt, new Date()), isNull(srsState.lastResult)))
+    .where(and(lte(srsState.nextReviewAt, new Date()), isNull(srsState.lastResult), topicFilter))
     .orderBy(desc(phrases.createdAt))
     .limit(NEW_PHRASE_POOL_SIZE);
 
@@ -39,9 +61,9 @@ async function selectNewPhrase() {
   return pool[Math.floor(Math.random() * pool.length)].phrase;
 }
 
-async function selectNewPhraseIfUnderCap(sessionId: number) {
+async function selectNewPhraseIfUnderCap(sessionId: number, topicFilter: SQL | undefined) {
   if (!Number.isInteger(sessionId)) {
-    return selectNewPhrase();
+    return selectNewPhrase(topicFilter);
   }
 
   const [{ value }] = await db
@@ -53,16 +75,21 @@ async function selectNewPhraseIfUnderCap(sessionId: number) {
     return null;
   }
 
-  return selectNewPhrase();
+  return selectNewPhrase(topicFilter);
 }
 
 drillRouter.get('/next', async (req, res) => {
   const sessionId = Number(req.query.sessionId);
+  const topicFilter = parseTopicFilter(req.query.topics);
 
   const phrase =
-    (await selectDuePhrase(inArray(srsState.lastResult, ['incorrect', 'close']), asc(srsState.nextReviewAt))) ??
-    (await selectDuePhrase(eq(srsState.lastResult, 'correct'), asc(srsState.nextReviewAt))) ??
-    (await selectNewPhraseIfUnderCap(sessionId));
+    (await selectDuePhrase(
+      inArray(srsState.lastResult, ['incorrect', 'close']),
+      asc(srsState.nextReviewAt),
+      topicFilter,
+    )) ??
+    (await selectDuePhrase(eq(srsState.lastResult, 'correct'), asc(srsState.nextReviewAt), topicFilter)) ??
+    (await selectNewPhraseIfUnderCap(sessionId, topicFilter));
 
   if (!phrase) {
     return res.status(204).end();
