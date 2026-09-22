@@ -5,6 +5,7 @@ import { db } from '../db/client.js';
 import { phrases, srsState, drillAttempts } from '../db/schema.js';
 import { evaluateDrillAnswer } from '../agent/evaluate-drill-answer.js';
 import { computeNextSrsState } from '../srs/compute-next-srs-state.js';
+import { flagGrammarMistake } from '../grammar/flag-grammar-mistake.js';
 
 export const drillRouter = Router();
 
@@ -137,12 +138,14 @@ drillRouter.post('/attempt', async (req, res) => {
 
   const isExactMatch = userAnswer.trim().toLowerCase() === phrase.enText.trim().toLowerCase();
 
-  const { verdict, feedback, nativePhrase } = revealed
-    ? { verdict: 'incorrect' as const, feedback: 'Answer revealed.', nativePhrase: phrase.enText }
+  const { verdict, feedback, nativePhrase, grammarTopic } = revealed
+    ? { verdict: 'incorrect' as const, feedback: 'Answer revealed.', nativePhrase: phrase.enText, grammarTopic: '' }
     : isExactMatch
-      ? { verdict: 'correct' as const, feedback: 'Exact match.', nativePhrase: phrase.enText }
+      ? { verdict: 'correct' as const, feedback: 'Exact match.', nativePhrase: phrase.enText, grammarTopic: '' }
       : await evaluateDrillAnswer(phrase.enText, userAnswer);
   const nextState = computeNextSrsState(currentSrs, verdict, new Date());
+
+  await flagGrammarMistake(grammarTopic);
 
   const wasStruggling = currentSrs.lastResult === 'incorrect' || currentSrs.lastResult === 'close';
   const improvedFromPrevious = verdict === 'correct' && wasStruggling;

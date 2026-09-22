@@ -6,6 +6,8 @@ import { DrillSession } from './drill-session/DrillSession.js';
 import { SessionSummary } from './session-summary/SessionSummary.js';
 import { AddPhrase } from './add-phrase/AddPhrase.js';
 import { AgentDashboard } from './agent-dashboard/AgentDashboard.js';
+import { RecitationSession } from './recitation/RecitationSession.js';
+import { GrammarSession } from './grammar/GrammarSession.js';
 import type { Session, SessionMode, StudyTopic, SuggestedPhrase } from './types.js';
 
 type View =
@@ -14,7 +16,9 @@ type View =
   | { name: 'drill'; session: Session; suggestedPhrases: SuggestedPhrase[]; topics: StudyTopic[] }
   | { name: 'session-summary'; session: Session; suggestedPhrases: SuggestedPhrase[]; comebackPhrases: string[] }
   | { name: 'agent-dashboard' }
-  | { name: 'add-phrase' };
+  | { name: 'add-phrase' }
+  | { name: 'recitation' }
+  | { name: 'grammar' };
 
 export function App() {
   const [view, setView] = useState<View>({ name: 'dashboard' });
@@ -30,8 +34,12 @@ export function App() {
           }
           onOpenAgentDashboard={() => setView({ name: 'agent-dashboard' })}
           onAddPhrase={() => setView({ name: 'add-phrase' })}
+          onOpenRecitation={() => setView({ name: 'recitation' })}
+          onOpenGrammar={() => setView({ name: 'grammar' })}
         />
       )}
+      {view.name === 'recitation' && <RecitationSession onDone={() => setView({ name: 'dashboard' })} />}
+      {view.name === 'grammar' && <GrammarSession onDone={() => setView({ name: 'dashboard' })} />}
       {view.name === 'free-talk' && (
         <FreeTalkSession
           session={view.session}

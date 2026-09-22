@@ -57,6 +57,72 @@ export const freeTalkEntries = pgTable('free_talk_entries', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const recitationTexts = pgTable('recitation_texts', {
+  id: serial('id').primaryKey(),
+  topic: text('topic').notNull(),
+  content: text('content').notNull(),
+  category: text('category'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const recitationSessions = pgTable('recitation_sessions', {
+  id: serial('id').primaryKey(),
+  sessionId: integer('session_id')
+    .references(() => sessions.id)
+    .notNull(),
+  recitationTextId: integer('recitation_text_id')
+    .references(() => recitationTexts.id)
+    .notNull(),
+  status: text('status').notNull().default('active'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const recitationTurns = pgTable('recitation_turns', {
+  id: serial('id').primaryKey(),
+  recitationSessionId: integer('recitation_session_id')
+    .references(() => recitationSessions.id)
+    .notNull(),
+  role: text('role').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const grammarTopics = pgTable('grammar_topics', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  level: text('level').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const grammarTopicState = pgTable('grammar_topic_state', {
+  topicId: integer('topic_id')
+    .references(() => grammarTopics.id)
+    .primaryKey(),
+  box: integer('box').notNull().default(0),
+  intervalDays: integer('interval_days').notNull().default(0),
+  nextReviewAt: timestamp('next_review_at').defaultNow().notNull(),
+  correctStreak: integer('correct_streak').notNull().default(0),
+  failStreak: integer('fail_streak').notNull().default(0),
+  lastResult: text('last_result'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const grammarExerciseAttempts = pgTable('grammar_exercise_attempts', {
+  id: serial('id').primaryKey(),
+  sessionId: integer('session_id')
+    .references(() => sessions.id)
+    .notNull(),
+  topicId: integer('topic_id')
+    .references(() => grammarTopics.id)
+    .notNull(),
+  exercisePrompt: text('exercise_prompt').notNull(),
+  userAnswer: text('user_answer').notNull(),
+  verdict: text('verdict').notNull(),
+  agentFeedback: text('agent_feedback'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const agentCalls = pgTable('agent_calls', {
   id: serial('id').primaryKey(),
   functionName: text('function_name').notNull(),

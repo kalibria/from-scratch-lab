@@ -10,6 +10,8 @@ type DashboardProps = {
   onStartSession: (session: Session, mode: SessionMode, topics: StudyTopic[]) => void;
   onOpenAgentDashboard: () => void;
   onAddPhrase: () => void;
+  onOpenRecitation: () => void;
+  onOpenGrammar: () => void;
 };
 
 const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
@@ -19,7 +21,13 @@ const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
   { value: 'free_talk', label: 'From free-talk' },
 ];
 
-export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }: DashboardProps) {
+export function Dashboard({
+  onStartSession,
+  onOpenAgentDashboard,
+  onAddPhrase,
+  onOpenRecitation,
+  onOpenGrammar,
+}: DashboardProps) {
   const { phase, retry } = useStats();
   const categories = usePhraseCategories();
   const [topics, setTopics] = useState<StudyTopic[]>([]);
@@ -110,6 +118,21 @@ export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }:
           className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
         >
           Just practice
+        </button>
+      </div>
+
+      <div className="mt-2.5 flex gap-2.5">
+        <button
+          onClick={onOpenRecitation}
+          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
+        >
+          Recite a text
+        </button>
+        <button
+          onClick={onOpenGrammar}
+          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
+        >
+          Practice grammar
         </button>
       </div>
 

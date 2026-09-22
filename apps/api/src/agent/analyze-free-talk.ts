@@ -1,5 +1,6 @@
 import { client, MODEL } from './agent-client.js';
 import { withObservability } from './with-observability.js';
+import { CEFR_TOPICS } from '../grammar/cefr-topics.js';
 
 const ANALYSIS_TOOL = {
   type: 'function' as const,
@@ -12,6 +13,11 @@ const ANALYSIS_TOOL = {
         grammar: {
           type: 'string',
           description: 'Grammar issues found, in English, plain text (no markdown). Empty string if none.',
+        },
+        grammarTopic: {
+          type: 'string',
+          description:
+            'If a grammar issue matches one of the given topics, its exact name. Empty string otherwise.',
         },
         naturalness: {
           type: 'string',
@@ -44,13 +50,14 @@ const ANALYSIS_TOOL = {
           },
         },
       },
-      required: ['grammar', 'naturalness', 'fluency', 'suggestedPhrases'],
+      required: ['grammar', 'grammarTopic', 'naturalness', 'fluency', 'suggestedPhrases'],
     },
   },
 };
 
 export type FreeTalkAnalysis = {
   grammar: string;
+  grammarTopic: string;
   naturalness: string;
   fluency: string;
   suggestedPhrases: { enText: string; ruGloss?: string; usageNote?: string }[];
@@ -63,8 +70,7 @@ export async function analyzeFreeTalk(promptTopic: string, userResponse: string)
       messages: [
         {
           role: 'system',
-          content:
-            'You are a native English-speaking tutor for a Russian-speaking B1-B2 learner. Analyze their free-talk response on three axes: grammar correctness, naturalness (native-like phrasing vs. literal Russian calque), and fluency. Suggest native-sounding phrases worth memorizing, each with a natural (not literal) Russian equivalent and a short usage note.',
+          content: `You are a native English-speaking tutor for a Russian-speaking B1-B2 learner. Analyze their free-talk response on three axes: grammar correctness, naturalness (native-like phrasing vs. literal Russian calque), and fluency. Suggest native-sounding phrases worth memorizing, each with a natural (not literal) Russian equivalent and a short usage note. If there's a grammar mistake, check if it matches one of these topics and tag it by its exact name: ${CEFR_TOPICS.map((t) => t.name).join(', ')}.`,
         },
         { role: 'user', content: `Topic: "${promptTopic}". Learner's response: "${userResponse}".` },
       ],

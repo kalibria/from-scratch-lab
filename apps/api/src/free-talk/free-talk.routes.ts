@@ -5,6 +5,7 @@ import { freeTalkEntries } from '../db/schema.js';
 import { generateFreeTalkPrompt } from '../agent/generate-free-talk-prompt.js';
 import { analyzeFreeTalk } from '../agent/analyze-free-talk.js';
 import { createPhrasesWithSrs } from '../phrases/create-phrases-with-srs.js';
+import { flagGrammarMistake } from '../grammar/flag-grammar-mistake.js';
 
 export const freeTalkRouter = Router();
 
@@ -22,6 +23,7 @@ freeTalkRouter.post('/analyze', async (req, res) => {
   const { sessionId, promptTopic, userResponse } = parsed.data;
   const analysis = await analyzeFreeTalk(promptTopic, userResponse);
 
+  await flagGrammarMistake(analysis.grammarTopic);
   await db.insert(freeTalkEntries).values({ sessionId, promptTopic, userResponse, analysis });
 
   res.json(analysis);
