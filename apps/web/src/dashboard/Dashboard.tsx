@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStats } from './use-stats.js';
+import { usePhraseCategories } from './use-phrase-categories.js';
 import { startSession } from './start-session.js';
 import { StatCard } from '../components/StatCard.js';
 import { Spinner } from '../components/Spinner.js';
@@ -11,7 +12,7 @@ type DashboardProps = {
   onAddPhrase: () => void;
 };
 
-const TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
+const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
   { value: 'collocation', label: 'Collocations' },
   { value: 'phrasal_verb', label: 'Phrasal verbs' },
   { value: 'idiom', label: 'Idioms' },
@@ -20,7 +21,14 @@ const TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
 
 export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }: DashboardProps) {
   const { phase, retry } = useStats();
+  const categories = usePhraseCategories();
   const [topics, setTopics] = useState<StudyTopic[]>([]);
+
+  const builtInValues = new Set(BUILT_IN_TOPIC_OPTIONS.map((option) => option.value));
+  const extraOptions = categories
+    .filter((category) => !builtInValues.has(category))
+    .map((category) => ({ value: category, label: category }));
+  const topicOptions = [...BUILT_IN_TOPIC_OPTIONS, ...extraOptions];
 
   if (phase.status === 'loading') {
     return <Spinner />;
@@ -65,7 +73,7 @@ export function Dashboard({ onStartSession, onOpenAgentDashboard, onAddPhrase }:
 
       <p className="mt-6 mb-2 text-sm text-ink-soft">Focus on (optional):</p>
       <div className="flex flex-wrap gap-2">
-        {TOPIC_OPTIONS.map((option) => (
+        {topicOptions.map((option) => (
           <button
             key={option.value}
             type="button"

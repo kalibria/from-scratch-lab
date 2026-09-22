@@ -9,7 +9,7 @@ type Verdict = 'correct' | 'incorrect' | 'close';
 type Phase =
   | { status: 'loading' }
   | { status: 'evaluating' }
-  | { status: 'answering'; phrase: Phrase }
+  | { status: 'answering'; phrase: Phrase; expandedBeyondTopic: boolean }
   | {
       status: 'feedback';
       phrase: Phrase;
@@ -17,6 +17,8 @@ type Phase =
       feedback: string;
       nativePhrase: string;
       improvedFromPrevious: boolean;
+      previousBox: number;
+      box: number;
     }
   | { status: 'empty' }
   | { status: 'time-up' }
@@ -57,7 +59,8 @@ export function useDrillSession(session: Session, topics: StudyTopic[]) {
       return;
     }
 
-    setPhase({ status: 'answering', phrase: await res.json() });
+    const { expandedBeyondTopic, ...phrase } = await res.json();
+    setPhase({ status: 'answering', phrase, expandedBeyondTopic: Boolean(expandedBeyondTopic) });
   }
 
   useEffect(() => {
@@ -95,6 +98,8 @@ export function useDrillSession(session: Session, topics: StudyTopic[]) {
       feedback: result.feedback,
       nativePhrase: result.nativePhrase,
       improvedFromPrevious: result.improvedFromPrevious,
+      previousBox: result.previousBox,
+      box: result.box,
     });
   }
 

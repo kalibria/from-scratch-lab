@@ -9,6 +9,7 @@ import { sessionsRouter } from './sessions/sessions.routes.js';
 import { drillRouter } from './drill/drill.routes.js';
 import { freeTalkRouter } from './free-talk/free-talk.routes.js';
 import { statsRouter } from './stats/stats.routes.js';
+import { telegramRouter } from './telegram/telegram.routes.js';
 import { errorHandler } from './error-handler.middleware.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/sessions', requireAuth, sessionsRouter);
 app.use('/drill', requireAuth, drillRouter);
 app.use('/free-talk', requireAuth, freeTalkRouter);
 app.use('/stats', requireAuth, statsRouter);
+app.use('/telegram', telegramRouter);
 
 app.use(errorHandler);
 

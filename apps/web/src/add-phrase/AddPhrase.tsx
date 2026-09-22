@@ -7,6 +7,7 @@ type AddPhraseProps = { onDone: () => void };
 export function AddPhrase({ onDone }: AddPhraseProps) {
   const { phase, selected, extract, toggle, confirm } = useAddPhrase();
   const [text, setText] = useState('');
+  const [blockName, setBlockName] = useState('');
 
   async function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -65,9 +66,15 @@ export function AddPhrase({ onDone }: AddPhraseProps) {
             </label>
           ))}
         </div>
+        <input
+          value={blockName}
+          onChange={(event) => setBlockName(event.target.value)}
+          placeholder="Name this list (optional) — e.g. work-english"
+          className="mb-3 w-full rounded-2xl border border-border px-4 py-3 text-sm"
+        />
         <button
           onClick={async () => {
-            await confirm();
+            await confirm(blockName.trim() || undefined);
           }}
           className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white"
         >

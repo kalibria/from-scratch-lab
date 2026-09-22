@@ -10,17 +10,17 @@ export const drillRouter = Router();
 
 const NEW_PHRASE_POOL_SIZE = 30;
 const MAX_NEW_PHRASES_PER_SESSION = 5;
-const CATEGORIES = ['collocation', 'phrasal_verb', 'idiom'] as const;
-type Category = (typeof CATEGORIES)[number];
+const BUILT_IN_TOPICS = new Set(['collocation', 'phrasal_verb', 'idiom', 'free_talk']);
 
 function parseTopicFilter(raw: unknown): SQL | undefined {
-  const values = typeof raw === 'string' ? raw.split(',') : [];
-  const categories = values.filter((v): v is Category => (CATEGORIES as readonly string[]).includes(v));
-  const includeFreeTalk = values.includes('free_talk');
+  const values = typeof raw === 'string' ? raw.split(',').filter(Boolean) : [];
 
-  if (categories.length === 0 && !includeFreeTalk) {
+  if (values.length === 0) {
     return undefined;
   }
+
+  const includeFreeTalk = values.includes('free_talk');
+  const categories = values.filter((v) => v !== 'free_talk');
 
   const conditions: SQL[] = [];
   if (categories.length > 0) {
@@ -33,21 +33,26 @@ function parseTopicFilter(raw: unknown): SQL | undefined {
   return or(...conditions);
 }
 
+function isWidenableTopicFilter(raw: unknown): boolean {
+  const values = typeof raw === 'string' ? raw.split(',').filter(Boolean) : [];
+  return values.length > 0 && values.every((v) => BUILT_IN_TOPICS.has(v));
+}
+
 async function selectDuePhrase(extraCondition: SQL, orderBy: SQL, topicFilter: SQL | undefined) {
   const [row] = await db
-    .select({ phrase: phrases })
+    .select({ phrase: phrases, box: srsState.box })
     .from(srsState)
     .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
     .where(and(lte(srsState.nextReviewAt, new Date()), extraCondition, topicFilter))
     .orderBy(orderBy)
     .limit(1);
 
-  return row?.phrase ?? null;
+  return row ?? null;
 }
 
 async function selectNewPhrase(topicFilter: SQL | undefined) {
   const pool = await db
-    .select({ phrase: phrases })
+    .select({ phrase: phrases, box: srsState.box })
     .from(srsState)
     .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
     .where(and(lte(srsState.nextReviewAt, new Date()), isNull(srsState.lastResult), topicFilter))
@@ -58,7 +63,7 @@ async function selectNewPhrase(topicFilter: SQL | undefined) {
     return null;
   }
 
-  return pool[Math.floor(Math.random() * pool.length)].phrase;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 async function selectNewPhraseIfUnderCap(sessionId: number, topicFilter: SQL | undefined) {
@@ -78,24 +83,37 @@ async function selectNewPhraseIfUnderCap(sessionId: number, topicFilter: SQL | u
   return selectNewPhrase(topicFilter);
 }
 
-drillRouter.get('/next', async (req, res) => {
-  const sessionId = Number(req.query.sessionId);
-  const topicFilter = parseTopicFilter(req.query.topics);
-
-  const phrase =
+async function findPhrase(sessionId: number, topicFilter: SQL | undefined) {
+  return (
     (await selectDuePhrase(
       inArray(srsState.lastResult, ['incorrect', 'close']),
       asc(srsState.nextReviewAt),
       topicFilter,
     )) ??
     (await selectDuePhrase(eq(srsState.lastResult, 'correct'), asc(srsState.nextReviewAt), topicFilter)) ??
-    (await selectNewPhraseIfUnderCap(sessionId, topicFilter));
+    (await selectNewPhraseIfUnderCap(sessionId, topicFilter))
+  );
+}
 
-  if (!phrase) {
-    return res.status(204).end();
+drillRouter.get('/next', async (req, res) => {
+  const sessionId = Number(req.query.sessionId);
+  const topicFilter = parseTopicFilter(req.query.topics);
+
+  const primary = await findPhrase(sessionId, topicFilter);
+
+  if (primary) {
+    return res.json({ ...primary.phrase, box: primary.box, expandedBeyondTopic: false });
   }
 
-  res.json(phrase);
+  if (topicFilter && isWidenableTopicFilter(req.query.topics)) {
+    const widened = await findPhrase(sessionId, undefined);
+
+    if (widened) {
+      return res.json({ ...widened.phrase, box: widened.box, expandedBeyondTopic: true });
+    }
+  }
+
+  res.status(204).end();
 });
 
 drillRouter.post('/attempt', async (req, res) => {
@@ -141,5 +159,13 @@ drillRouter.post('/attempt', async (req, res) => {
     });
   });
 
-  res.json({ verdict, feedback, nativePhrase, nextReviewAt: nextState.nextReviewAt, improvedFromPrevious });
+  res.json({
+    verdict,
+    feedback,
+    nativePhrase,
+    nextReviewAt: nextState.nextReviewAt,
+    improvedFromPrevious,
+    box: nextState.box,
+    previousBox: currentSrs.box,
+  });
 });

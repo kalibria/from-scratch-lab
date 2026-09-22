@@ -7,12 +7,13 @@ export type Session = {
 
 export type SessionMode = 'combined' | 'free-talk' | 'drill';
 
-export type StudyTopic = 'collocation' | 'phrasal_verb' | 'idiom' | 'free_talk';
+export type StudyTopic = string;
 
 export type Phrase = {
   id: number;
   enText: string;
   ruGloss: string | null;
+  box: number;
 };
 
 export type SuggestedPhrase = {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { isNotNull } from 'drizzle-orm';
 import { createPhraseSchema, extractPhrasesRequestSchema, bulkAddPhrasesSchema } from '@app/shared';
 import { db } from '../db/client.js';
 import { phrases } from '../db/schema.js';
@@ -17,11 +18,24 @@ phrasesRouter.post('/', async (req, res) => {
 
   const phrase = await db.transaction((tx) => createPhraseWithSrs(tx, parsed.data));
 
+  if (!phrase) {
+    return res.status(409).json({ error: 'phrase already exists' });
+  }
+
   res.status(201).json(phrase);
 });
 
 phrasesRouter.get('/', async (_req, res) => {
   res.json(await db.select().from(phrases));
+});
+
+phrasesRouter.get('/categories', async (_req, res) => {
+  const rows = await db
+    .selectDistinct({ category: phrases.category })
+    .from(phrases)
+    .where(isNotNull(phrases.category));
+
+  res.json(rows.map((row) => row.category));
 });
 
 phrasesRouter.post('/extract', async (req, res) => {
@@ -41,6 +55,8 @@ phrasesRouter.post('/bulk', async (req, res) => {
     return res.status(400).json({ error: parsed.error.flatten() });
   }
 
-  const created = await createPhrasesWithSrs(parsed.data.phrases.map((p) => ({ ...p, source: 'manual' as const })));
+  const created = await createPhrasesWithSrs(
+    parsed.data.phrases.map((p) => ({ ...p, source: 'manual' as const, category: parsed.data.category })),
+  );
   res.status(201).json(created);
 });

@@ -3,6 +3,7 @@ import { useDrillSession } from './use-drill-session.js';
 import { SessionTimer } from '../components/SessionTimer.js';
 import { Spinner } from '../components/Spinner.js';
 import { MicButton } from '../components/MicButton.js';
+import { BoxDots } from '../components/BoxDots.js';
 import { getSessionDeadline } from '../session-deadline.js';
 import type { Session, StudyTopic } from '../types.js';
 
@@ -102,7 +103,13 @@ export function DrillSession({ session, topics, onFinish }: DrillSessionProps) {
         <SessionTimer deadline={getSessionDeadline(session)} />
       </div>
 
-      <p className="mb-2 text-sm text-ink-soft">Translate into English</p>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-sm text-ink-soft">Translate into English</p>
+        <BoxDots box={phase.phrase.box} />
+      </div>
+      {phase.status === 'answering' && phase.expandedBeyondTopic && (
+        <p className="mb-2 text-xs text-ink-soft">Ran out of phrases in your chosen topic — pulling from everything else.</p>
+      )}
       <div className="mb-5 rounded-2xl border border-border bg-surface-soft px-5 py-6 text-center font-serif text-xl">
         {phase.phrase.ruGloss}
       </div>
@@ -160,6 +167,14 @@ export function DrillSession({ session, topics, onFinish }: DrillSessionProps) {
             {phase.improvedFromPrevious && (
               <p className="mt-2 text-sm font-semibold text-good">You used to mix this up — got it right this time!</p>
             )}
+            <div className="mt-3 flex items-center gap-2">
+              <BoxDots box={phase.previousBox} />
+              <span className="text-ink-soft">→</span>
+              <BoxDots box={phase.box} />
+              {phase.box === 5 && phase.previousBox < 5 && (
+                <span className="text-sm font-semibold text-good">Learned!</span>
+              )}
+            </div>
           </div>
           <button
             onClick={() => {

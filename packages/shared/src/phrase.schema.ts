@@ -4,7 +4,8 @@ export const createPhraseSchema = z.object({
   enText: z.string().min(1),
   ruGloss: z.string().optional(),
   usageNote: z.string().optional(),
-  source: z.enum(['manual', 'free_talk']),
+  source: z.enum(['manual', 'free_talk', 'telegram']),
+  category: z.string().optional(),
 });
 
 export type CreatePhraseInput = z.infer<typeof createPhraseSchema>;
@@ -25,6 +26,7 @@ export const bulkAddPhrasesSchema = z.object({
       }),
     )
     .min(1),
+  category: z.string().optional(),
 });
 
 export type BulkAddPhrasesInput = z.infer<typeof bulkAddPhrasesSchema>;

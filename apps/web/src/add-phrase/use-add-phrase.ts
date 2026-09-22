@@ -39,13 +39,13 @@ export function useAddPhrase() {
     });
   }
 
-  async function confirm() {
+  async function confirm(category?: string) {
     if (phase.status !== 'review') {
       return;
     }
 
     const chosen = phase.candidates.filter((p) => selected.has(p.enText));
-    await apiFetch('/phrases/bulk', { method: 'POST', body: JSON.stringify({ phrases: chosen }) });
+    await apiFetch('/phrases/bulk', { method: 'POST', body: JSON.stringify({ phrases: chosen, category }) });
     setPhase({ status: 'done' });
   }
 

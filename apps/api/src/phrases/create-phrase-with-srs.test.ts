@@ -21,11 +21,31 @@ describe('createPhraseWithSrs', () => {
       .mockReturnValueOnce({ values: valuesForPhrase })
       .mockReturnValueOnce({ values: valuesForSrs });
 
-    const tx = { insert } as never;
+    const limit = vi.fn().mockResolvedValue([]);
+    const where = vi.fn().mockReturnValue({ limit });
+    const from = vi.fn().mockReturnValue({ where });
+    const select = vi.fn().mockReturnValue({ from });
+
+    const tx = { insert, select } as never;
 
     const result = await createPhraseWithSrs(tx, { enText: 'break the ice', source: 'manual' });
 
     expect(result).toEqual(phraseRow);
     expect(valuesForSrs).toHaveBeenCalledWith({ phraseId: 1 });
+  });
+
+  it('skips insertion when a phrase with the same text already exists', async () => {
+    const limit = vi.fn().mockResolvedValue([{ id: 1 }]);
+    const where = vi.fn().mockReturnValue({ limit });
+    const from = vi.fn().mockReturnValue({ where });
+    const select = vi.fn().mockReturnValue({ from });
+    const insert = vi.fn();
+
+    const tx = { insert, select } as never;
+
+    const result = await createPhraseWithSrs(tx, { enText: 'break the ice', source: 'manual' });
+
+    expect(result).toBeNull();
+    expect(insert).not.toHaveBeenCalled();
   });
 });
