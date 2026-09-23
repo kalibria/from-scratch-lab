@@ -8,6 +8,7 @@ import { AddPhrase } from './add-phrase/AddPhrase.js';
 import { AgentDashboard } from './agent-dashboard/AgentDashboard.js';
 import { RecitationSession } from './recitation/RecitationSession.js';
 import { GrammarSession } from './grammar/GrammarSession.js';
+import { BrowseSession } from './browse-session/BrowseSession.js';
 import type { Session, SessionMode, StudyTopic, SuggestedPhrase } from './types.js';
 
 type View =
@@ -18,7 +19,8 @@ type View =
   | { name: 'agent-dashboard' }
   | { name: 'add-phrase' }
   | { name: 'recitation' }
-  | { name: 'grammar' };
+  | { name: 'grammar' }
+  | { name: 'browse'; topics: StudyTopic[] };
 
 export function App() {
   const [view, setView] = useState<View>({ name: 'dashboard' });
@@ -36,10 +38,14 @@ export function App() {
           onAddPhrase={() => setView({ name: 'add-phrase' })}
           onOpenRecitation={() => setView({ name: 'recitation' })}
           onOpenGrammar={() => setView({ name: 'grammar' })}
+          onOpenBrowse={(topics) => setView({ name: 'browse', topics })}
         />
       )}
       {view.name === 'recitation' && <RecitationSession onDone={() => setView({ name: 'dashboard' })} />}
       {view.name === 'grammar' && <GrammarSession onDone={() => setView({ name: 'dashboard' })} />}
+      {view.name === 'browse' && (
+        <BrowseSession topics={view.topics} onDone={() => setView({ name: 'dashboard' })} />
+      )}
       {view.name === 'free-talk' && (
         <FreeTalkSession
           session={view.session}

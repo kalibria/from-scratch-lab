@@ -5,6 +5,7 @@ export const submitDrillAttemptSchema = z.object({
   phraseId: z.number().int(),
   userAnswer: z.string(),
   revealed: z.boolean().optional(),
+  selfVerdict: z.enum(['correct', 'incorrect']).optional(),
 });
 
 export type SubmitDrillAttemptInput = z.infer<typeof submitDrillAttemptSchema>;

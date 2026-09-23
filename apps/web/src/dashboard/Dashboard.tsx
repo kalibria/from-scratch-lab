@@ -12,6 +12,7 @@ type DashboardProps = {
   onAddPhrase: () => void;
   onOpenRecitation: () => void;
   onOpenGrammar: () => void;
+  onOpenBrowse: (topics: StudyTopic[]) => void;
 };
 
 const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
@@ -27,6 +28,7 @@ export function Dashboard({
   onAddPhrase,
   onOpenRecitation,
   onOpenGrammar,
+  onOpenBrowse,
 }: DashboardProps) {
   const { phase, retry } = useStats();
   const categories = usePhraseCategories();
@@ -118,6 +120,12 @@ export function Dashboard({
           className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
         >
           Just practice
+        </button>
+        <button
+          onClick={() => onOpenBrowse(topics)}
+          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
+        >
+          Flashcards
         </button>
       </div>
 

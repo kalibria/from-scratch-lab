@@ -124,7 +124,7 @@ drillRouter.post('/attempt', async (req, res) => {
     return res.status(400).json({ error: parsed.error.flatten() });
   }
 
-  const { sessionId, phraseId, userAnswer, revealed } = parsed.data;
+  const { sessionId, phraseId, userAnswer, revealed, selfVerdict } = parsed.data;
 
   const [phrase] = await db.select().from(phrases).where(eq(phrases.id, phraseId));
   if (!phrase) {
@@ -140,9 +140,11 @@ drillRouter.post('/attempt', async (req, res) => {
 
   const { verdict, feedback, nativePhrase, grammarTopic } = revealed
     ? { verdict: 'incorrect' as const, feedback: 'Answer revealed.', nativePhrase: phrase.enText, grammarTopic: '' }
-    : isExactMatch
-      ? { verdict: 'correct' as const, feedback: 'Exact match.', nativePhrase: phrase.enText, grammarTopic: '' }
-      : await evaluateDrillAnswer(phrase.enText, userAnswer);
+    : selfVerdict
+      ? { verdict: selfVerdict, feedback: 'Self-graded.', nativePhrase: phrase.enText, grammarTopic: '' }
+      : isExactMatch
+        ? { verdict: 'correct' as const, feedback: 'Exact match.', nativePhrase: phrase.enText, grammarTopic: '' }
+        : await evaluateDrillAnswer(phrase.enText, userAnswer);
   const nextState = computeNextSrsState(currentSrs, verdict, new Date());
 
   await flagGrammarMistake(grammarTopic);
