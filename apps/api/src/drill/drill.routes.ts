@@ -84,7 +84,7 @@ async function selectNewPhraseIfUnderCap(sessionId: number, topicFilter: SQL | u
   return selectNewPhrase(topicFilter);
 }
 
-async function findPhrase(sessionId: number, topicFilter: SQL | undefined) {
+async function findPhrase(sessionId: number, topicFilter: SQL | undefined, capNewPhrases: boolean) {
   return (
     (await selectDuePhrase(
       inArray(srsState.lastResult, ['incorrect', 'close']),
@@ -92,22 +92,23 @@ async function findPhrase(sessionId: number, topicFilter: SQL | undefined) {
       topicFilter,
     )) ??
     (await selectDuePhrase(eq(srsState.lastResult, 'correct'), asc(srsState.nextReviewAt), topicFilter)) ??
-    (await selectNewPhraseIfUnderCap(sessionId, topicFilter))
+    (capNewPhrases ? await selectNewPhraseIfUnderCap(sessionId, topicFilter) : await selectNewPhrase(topicFilter))
   );
 }
 
 drillRouter.get('/next', async (req, res) => {
   const sessionId = Number(req.query.sessionId);
   const topicFilter = parseTopicFilter(req.query.topics);
+  const capNewPhrases = req.query.skipNewCap !== 'true';
 
-  const primary = await findPhrase(sessionId, topicFilter);
+  const primary = await findPhrase(sessionId, topicFilter, capNewPhrases);
 
   if (primary) {
     return res.json({ ...primary.phrase, box: primary.box, expandedBeyondTopic: false });
   }
 
   if (topicFilter && isWidenableTopicFilter(req.query.topics)) {
-    const widened = await findPhrase(sessionId, undefined);
+    const widened = await findPhrase(sessionId, undefined, capNewPhrases);
 
     if (widened) {
       return res.json({ ...widened.phrase, box: widened.box, expandedBeyondTopic: true });

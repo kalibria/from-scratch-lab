@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { apiFetch } from '../api-client.js';
 import { startSession } from '../dashboard/start-session.js';
 import { getSessionDeadline } from '../session-deadline.js';
@@ -16,6 +16,7 @@ export function useBrowseSession(topics: StudyTopic[]) {
   const [revealed, setRevealed] = useState(false);
   const [timerDisabled, setTimerDisabled] = useState(false);
   const [reviewedCount, setReviewedCount] = useState(0);
+  const submittingRef = useRef(false);
 
   async function fetchNext(activeSession: Session, skipTimerCheck: boolean) {
     if (!skipTimerCheck && !timerDisabled && isTimeUp(getSessionDeadline(activeSession), new Date())) {
@@ -27,7 +28,7 @@ export function useBrowseSession(topics: StudyTopic[]) {
     setRevealed(false);
 
     const topicsQuery = topics.length > 0 ? `&topics=${topics.join(',')}` : '';
-    const res = await apiFetch(`/drill/next?sessionId=${activeSession.id}${topicsQuery}`);
+    const res = await apiFetch(`/drill/next?sessionId=${activeSession.id}&skipNewCap=true${topicsQuery}`);
 
     if (res.status === 204) {
       setPhase('empty');
@@ -57,9 +58,12 @@ export function useBrowseSession(topics: StudyTopic[]) {
   }
 
   async function grade(verdict: 'correct' | 'incorrect') {
-    if (!session || !phrase) {
+    if (!session || !phrase || submittingRef.current) {
       return;
     }
+
+    submittingRef.current = true;
+    setPhase('loading');
 
     await apiFetch('/drill/attempt', {
       method: 'POST',
@@ -68,6 +72,7 @@ export function useBrowseSession(topics: StudyTopic[]) {
 
     setReviewedCount((count) => count + 1);
     await fetchNext(session, false);
+    submittingRef.current = false;
   }
 
   function continueWithoutTimer() {
