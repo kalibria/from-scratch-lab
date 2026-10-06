@@ -18,9 +18,18 @@ const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
   { value: 'free_talk', label: 'From free-talk' },
 ];
 
+type QuickMode = 'free-talk' | 'drill' | 'flashcards';
+
+const MODE_OPTIONS: { value: QuickMode; label: string; description: string }[] = [
+  { value: 'free-talk', label: 'Just talk', description: 'Speak freely on a topic, get feedback' },
+  { value: 'drill', label: 'Just practice', description: 'Translate phrases, get corrected' },
+  { value: 'flashcards', label: 'Flashcards', description: 'Self-graded, instant review' },
+];
+
 export function QuickPractice({ onStartSession, onOpenRecitation, onOpenGrammar, onOpenBrowse, onDone }: QuickPracticeProps) {
   const categories = usePhraseCategories();
   const [topics, setTopics] = useState<StudyTopic[]>([]);
+  const [mode, setMode] = useState<QuickMode | undefined>(undefined);
 
   const builtInValues = new Set(BUILT_IN_TOPIC_OPTIONS.map((option) => option.value));
   const extraOptions = categories
@@ -32,7 +41,14 @@ export function QuickPractice({ onStartSession, onOpenRecitation, onOpenGrammar,
     setTopics((prev) => (prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]));
   }
 
-  async function handleStart(mode: SessionMode) {
+  async function handleStart() {
+    if (!mode) return;
+
+    if (mode === 'flashcards') {
+      onOpenBrowse(topics);
+      return;
+    }
+
     const session = await startSession(15);
     onStartSession(session, mode, topics);
   }
@@ -63,35 +79,35 @@ export function QuickPractice({ onStartSession, onOpenRecitation, onOpenGrammar,
         ))}
       </div>
 
-      <button
-        onClick={() => handleStart('combined')}
-        className="mb-2.5 w-full rounded-2xl bg-accent px-4 py-4 text-center font-semibold text-white"
-      >
-        Start session
-        <span className="block text-xs font-normal opacity-85">15 minutes · talk + practice</span>
-      </button>
-
-      <div className="mb-2.5 grid grid-cols-3 gap-2">
-        <button
-          onClick={() => handleStart('free-talk')}
-          className="rounded-2xl border border-border px-3 py-3 text-center text-sm font-medium"
-        >
-          Just talk
-        </button>
-        <button
-          onClick={() => handleStart('drill')}
-          className="rounded-2xl border border-border px-3 py-3 text-center text-sm font-medium"
-        >
-          Just practice
-        </button>
-        <button
-          onClick={() => onOpenBrowse(topics)}
-          className="rounded-2xl border border-border px-3 py-3 text-center text-sm font-medium"
-        >
-          Flashcards
-        </button>
+      <p className="mb-2 text-sm text-ink-soft">What do you want to practice?</p>
+      <div className="mb-5 flex flex-col gap-2">
+        {MODE_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setMode(option.value)}
+            aria-pressed={mode === option.value}
+            className={`w-full rounded-2xl border px-4 py-3 text-left ${
+              mode === option.value ? 'border-accent bg-accent-soft' : 'border-border'
+            }`}
+          >
+            <span className={`block font-semibold ${mode === option.value ? 'text-accent' : ''}`}>
+              {option.label}
+            </span>
+            <span className="block text-xs text-ink-soft">{option.description}</span>
+          </button>
+        ))}
       </div>
 
+      <button
+        onClick={handleStart}
+        disabled={!mode}
+        className="mb-6 w-full rounded-2xl bg-accent px-4 py-4 text-center font-semibold text-white disabled:opacity-40"
+      >
+        Start session
+      </button>
+
+      <p className="mb-2 text-sm text-ink-soft">Or jump straight into:</p>
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={onOpenRecitation}
