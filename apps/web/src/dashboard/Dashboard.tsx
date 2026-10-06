@@ -1,46 +1,16 @@
-import { useState } from 'react';
 import { useStats } from './use-stats.js';
-import { usePhraseCategories } from './use-phrase-categories.js';
-import { startSession } from './start-session.js';
 import { StatCard } from '../components/StatCard.js';
 import { Spinner } from '../components/Spinner.js';
-import type { Session, SessionMode, StudyTopic } from '../types.js';
 
 type DashboardProps = {
-  onStartSession: (session: Session, mode: SessionMode, topics: StudyTopic[]) => void;
   onOpenAgentDashboard: () => void;
   onAddPhrase: () => void;
-  onOpenRecitation: () => void;
-  onOpenGrammar: () => void;
-  onOpenBrowse: (topics: StudyTopic[]) => void;
   onOpenLessons: () => void;
+  onOpenQuickPractice: () => void;
 };
 
-const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
-  { value: 'collocation', label: 'Collocations' },
-  { value: 'phrasal_verb', label: 'Phrasal verbs' },
-  { value: 'idiom', label: 'Idioms' },
-  { value: 'free_talk', label: 'From free-talk' },
-];
-
-export function Dashboard({
-  onStartSession,
-  onOpenAgentDashboard,
-  onAddPhrase,
-  onOpenRecitation,
-  onOpenGrammar,
-  onOpenBrowse,
-  onOpenLessons,
-}: DashboardProps) {
+export function Dashboard({ onOpenAgentDashboard, onAddPhrase, onOpenLessons, onOpenQuickPractice }: DashboardProps) {
   const { phase, retry } = useStats();
-  const categories = usePhraseCategories();
-  const [topics, setTopics] = useState<StudyTopic[]>([]);
-
-  const builtInValues = new Set(BUILT_IN_TOPIC_OPTIONS.map((option) => option.value));
-  const extraOptions = categories
-    .filter((category) => !builtInValues.has(category) && !category.startsWith('lesson-'))
-    .map((category) => ({ value: category, label: category }));
-  const topicOptions = [...BUILT_IN_TOPIC_OPTIONS, ...extraOptions];
 
   if (phase.status === 'loading') {
     return <Spinner />;
@@ -59,102 +29,42 @@ export function Dashboard({
 
   const { stats } = phase;
 
-  function toggleTopic(topic: StudyTopic) {
-    setTopics((prev) => (prev.includes(topic) ? prev.filter((t) => t !== topic) : [...prev, topic]));
-  }
-
-  async function handleStart(mode: SessionMode) {
-    const session = await startSession(15);
-    onStartSession(session, mode, topics);
-  }
-
   return (
     <div className="mx-auto max-w-sm px-5 py-8">
-      <div className="mb-6 flex items-baseline gap-2.5">
+      <div className="mb-5 flex items-baseline gap-2.5">
         <span className="font-serif text-4xl text-accent">{stats.currentStreak}</span>
         <span className="text-sm text-ink-soft">day streak</span>
       </div>
 
-      <div className="flex flex-col gap-2.5">
-        <StatCard label="Due for review" value={stats.phrasesDue} />
+      <div className="mb-7 grid grid-cols-2 gap-2">
+        <StatCard label="Due" value={stats.phrasesDue} />
         <StatCard label="Learned" value={stats.phrasesMastered} />
         <StatCard label="Still learning" value={stats.phrasesRemaining} />
-        <StatCard label="Days practiced" value={stats.daysPracticed} />
-        <StatCard label="Total hours" value={(stats.totalMinutes / 60).toFixed(1)} />
-      </div>
-
-      <p className="mt-6 mb-2 text-sm text-ink-soft">Focus on (optional):</p>
-      <div className="flex flex-wrap gap-2">
-        {topicOptions.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => toggleTopic(option.value)}
-            aria-pressed={topics.includes(option.value)}
-            className={`rounded-full border px-3.5 py-2 text-sm font-medium ${
-              topics.includes(option.value)
-                ? 'border-accent bg-accent-soft text-accent'
-                : 'border-border text-ink-soft'
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
+        <StatCard label="Days" value={stats.daysPracticed} />
+        <StatCard label="Hours" value={(stats.totalMinutes / 60).toFixed(1)} />
       </div>
 
       <button
         onClick={onOpenLessons}
-        className="mt-4 w-full rounded-2xl bg-accent px-4 py-4 text-center font-semibold text-white"
+        className="w-full rounded-2xl bg-accent px-4 py-5 text-center text-lg font-semibold text-white"
       >
         Lessons
-        <span className="block text-xs font-normal opacity-85">structured units: vocab, grammar, writing, speaking</span>
+        <span className="mt-1 block text-xs font-normal opacity-85">
+          structured units: vocab, grammar, writing, speaking
+        </span>
       </button>
 
       <button
-        onClick={() => handleStart('combined')}
-        className="mt-2.5 w-full rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
+        onClick={onOpenQuickPractice}
+        className="mt-2.5 w-full rounded-2xl border border-border bg-surface-soft px-4 py-5 text-center text-lg font-semibold"
       >
-        Start session
-        <span className="block text-xs font-normal text-ink-soft">15 minutes · talk + practice</span>
+        Quick practice
+        <span className="mt-1 block text-xs font-normal text-ink-soft">
+          flashcards, free talk, grammar, recitation
+        </span>
       </button>
 
-      <div className="mt-2.5 flex gap-2.5">
-        <button
-          onClick={() => handleStart('free-talk')}
-          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
-        >
-          Just talk
-        </button>
-        <button
-          onClick={() => handleStart('drill')}
-          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
-        >
-          Just practice
-        </button>
-        <button
-          onClick={() => onOpenBrowse(topics)}
-          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
-        >
-          Flashcards
-        </button>
-      </div>
-
-      <div className="mt-2.5 flex gap-2.5">
-        <button
-          onClick={onOpenRecitation}
-          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
-        >
-          Recite a text
-        </button>
-        <button
-          onClick={onOpenGrammar}
-          className="flex-1 rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
-        >
-          Practice grammar
-        </button>
-      </div>
-
-      <button onClick={onAddPhrase} className="mt-3.5 w-full text-center text-sm text-ink-soft underline">
+      <button onClick={onAddPhrase} className="mt-5 w-full text-center text-sm text-ink-soft underline">
         Add phrase manually
       </button>
 

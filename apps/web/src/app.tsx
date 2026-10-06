@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PinGate } from './pin-gate/PinGate.js';
 import { Dashboard } from './dashboard/Dashboard.js';
+import { QuickPractice } from './dashboard/QuickPractice.js';
 import { FreeTalkSession } from './free-talk-session/FreeTalkSession.js';
 import { DrillSession } from './drill-session/DrillSession.js';
 import { SessionSummary } from './session-summary/SessionSummary.js';
@@ -25,6 +26,7 @@ type View =
   | { name: 'agent-dashboard' }
   | { name: 'add-phrase' }
   | { name: 'recitation' }
+  | { name: 'quick-practice' }
   | { name: 'grammar'; topicId?: number; returnTo?: ReturnDestination }
   | { name: 'browse'; topics: StudyTopic[]; returnTo?: ReturnDestination }
   | { name: 'lesson-hub' }
@@ -40,17 +42,23 @@ export function App() {
     <PinGate>
       {view.name === 'dashboard' && (
         <Dashboard
+          onOpenAgentDashboard={() => setView({ name: 'agent-dashboard' })}
+          onAddPhrase={() => setView({ name: 'add-phrase' })}
+          onOpenLessons={() => setView({ name: 'lesson-hub' })}
+          onOpenQuickPractice={() => setView({ name: 'quick-practice' })}
+        />
+      )}
+      {view.name === 'quick-practice' && (
+        <QuickPractice
           onStartSession={(session, mode, topics) =>
             mode === 'drill'
               ? setView({ name: 'drill', session, suggestedPhrases: [], topics })
               : setView({ name: 'free-talk', session, mode, topics })
           }
-          onOpenAgentDashboard={() => setView({ name: 'agent-dashboard' })}
-          onAddPhrase={() => setView({ name: 'add-phrase' })}
           onOpenRecitation={() => setView({ name: 'recitation' })}
           onOpenGrammar={() => setView({ name: 'grammar' })}
           onOpenBrowse={(topics) => setView({ name: 'browse', topics })}
-          onOpenLessons={() => setView({ name: 'lesson-hub' })}
+          onDone={() => setView({ name: 'dashboard' })}
         />
       )}
       {view.name === 'recitation' && <RecitationSession onDone={() => setView({ name: 'dashboard' })} />}
