@@ -57,6 +57,13 @@
       "when": 1790071416949,
       "tag": "0007_steady_wallow",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791275366856,
+      "tag": "0008_lame_scourge",
+      "breakpoints": true
     }
   ]
 }

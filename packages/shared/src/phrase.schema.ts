@@ -4,7 +4,7 @@ export const createPhraseSchema = z.object({
   enText: z.string().min(1),
   ruGloss: z.string().optional(),
   usageNote: z.string().optional(),
-  source: z.enum(['manual', 'free_talk', 'telegram']),
+  source: z.enum(['manual', 'free_talk', 'telegram', 'lesson_seed']),
   category: z.string().optional(),
 });
 

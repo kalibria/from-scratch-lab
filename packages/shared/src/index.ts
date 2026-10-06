@@ -4,3 +4,4 @@ export * from './drill.schema.js';
 export * from './free-talk.schema.js';
 export * from './recitation.schema.js';
 export * from './grammar.schema.js';
+export * from './lesson.schema.js';

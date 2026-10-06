@@ -13,6 +13,7 @@ type DashboardProps = {
   onOpenRecitation: () => void;
   onOpenGrammar: () => void;
   onOpenBrowse: (topics: StudyTopic[]) => void;
+  onOpenLessons: () => void;
 };
 
 const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
@@ -29,6 +30,7 @@ export function Dashboard({
   onOpenRecitation,
   onOpenGrammar,
   onOpenBrowse,
+  onOpenLessons,
 }: DashboardProps) {
   const { phase, retry } = useStats();
   const categories = usePhraseCategories();
@@ -36,7 +38,7 @@ export function Dashboard({
 
   const builtInValues = new Set(BUILT_IN_TOPIC_OPTIONS.map((option) => option.value));
   const extraOptions = categories
-    .filter((category) => !builtInValues.has(category))
+    .filter((category) => !builtInValues.has(category) && !category.startsWith('lesson-'))
     .map((category) => ({ value: category, label: category }));
   const topicOptions = [...BUILT_IN_TOPIC_OPTIONS, ...extraOptions];
 
@@ -101,11 +103,19 @@ export function Dashboard({
       </div>
 
       <button
-        onClick={() => handleStart('combined')}
+        onClick={onOpenLessons}
         className="mt-4 w-full rounded-2xl bg-accent px-4 py-4 text-center font-semibold text-white"
       >
+        Lessons
+        <span className="block text-xs font-normal opacity-85">structured units: vocab, grammar, writing, speaking</span>
+      </button>
+
+      <button
+        onClick={() => handleStart('combined')}
+        className="mt-2.5 w-full rounded-2xl border border-border px-4 py-3 text-center text-sm font-medium"
+      >
         Start session
-        <span className="block text-xs font-normal opacity-85">15 minutes · talk + practice</span>
+        <span className="block text-xs font-normal text-ink-soft">15 minutes · talk + practice</span>
       </button>
 
       <div className="mt-2.5 flex gap-2.5">

@@ -5,9 +5,9 @@ import { BoxDots } from '../components/BoxDots.js';
 import { getSessionDeadline } from '../session-deadline.js';
 import type { StudyTopic } from '../types.js';
 
-type BrowseSessionProps = { topics: StudyTopic[]; onDone: () => void };
+type BrowseSessionProps = { topics: StudyTopic[]; onDone: () => void; backLabel?: string };
 
-export function BrowseSession({ topics, onDone }: BrowseSessionProps) {
+export function BrowseSession({ topics, onDone, backLabel = 'Back to dashboard' }: BrowseSessionProps) {
   const {
     phase,
     session,
@@ -46,7 +46,7 @@ export function BrowseSession({ topics, onDone }: BrowseSessionProps) {
           No time limit
         </button>
         <button onClick={onDone} className="w-full text-center text-sm text-ink-soft underline">
-          Back to dashboard
+          {backLabel}
         </button>
       </div>
     );
@@ -61,7 +61,7 @@ export function BrowseSession({ topics, onDone }: BrowseSessionProps) {
       <div className="mx-auto max-w-sm px-5 py-8 text-center">
         <p className="mb-5 text-ink-soft">Couldn't load your cards.</p>
         <button onClick={finishAndExit} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
-          Back to dashboard
+          {backLabel}
         </button>
       </div>
     );
@@ -74,7 +74,7 @@ export function BrowseSession({ topics, onDone }: BrowseSessionProps) {
           {reviewedCount === 0 ? 'No phrases due right now.' : `You reviewed ${reviewedCount} cards.`}
         </p>
         <button onClick={finishAndExit} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
-          Back to dashboard
+          {backLabel}
         </button>
       </div>
     );
@@ -101,7 +101,7 @@ export function BrowseSession({ topics, onDone }: BrowseSessionProps) {
     return (
       <div className="mx-auto max-w-sm px-5 py-8 text-center">
         <button onClick={finishAndExit} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
-          Back to dashboard
+          {backLabel}
         </button>
       </div>
     );

@@ -24,7 +24,7 @@ type Phase =
   | { status: 'empty' }
   | { status: 'error' };
 
-export function useGrammarSession() {
+export function useGrammarSession(topicId?: number) {
   const [phase, setPhase] = useState<Phase>({ status: 'loading' });
   const [answer, setAnswer] = useState('');
   const [session, setSession] = useState<Session | null>(null);
@@ -33,7 +33,8 @@ export function useGrammarSession() {
     setPhase({ status: 'loading' });
     setAnswer('');
 
-    const res = await apiFetch('/grammar/next');
+    const query = topicId ? `?topicId=${topicId}` : '';
+    const res = await apiFetch(`/grammar/next${query}`);
 
     if (res.status === 204) {
       setPhase({ status: 'empty' });

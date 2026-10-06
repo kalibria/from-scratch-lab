@@ -21,6 +21,16 @@ async function selectDueTopic(extraCondition: SQL, orderBy: SQL) {
   return row ?? null;
 }
 
+async function selectSpecificTopic(topicId: number) {
+  const [row] = await db
+    .select({ topic: grammarTopics, box: grammarTopicState.box })
+    .from(grammarTopicState)
+    .innerJoin(grammarTopics, eq(grammarTopicState.topicId, grammarTopics.id))
+    .where(eq(grammarTopics.id, topicId));
+
+  return row ?? null;
+}
+
 async function findTopic() {
   return (
     (await selectDueTopic(
@@ -32,8 +42,9 @@ async function findTopic() {
   );
 }
 
-grammarRouter.get('/next', async (_req, res) => {
-  const found = await findTopic();
+grammarRouter.get('/next', async (req, res) => {
+  const topicId = Number(req.query.topicId);
+  const found = Number.isInteger(topicId) ? await selectSpecificTopic(topicId) : await findTopic();
 
   if (!found) {
     return res.status(204).end();

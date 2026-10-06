@@ -3,10 +3,10 @@ import { useGrammarSession } from './use-grammar-session.js';
 import { Spinner } from '../components/Spinner.js';
 import { BoxDots } from '../components/BoxDots.js';
 
-type GrammarSessionProps = { onDone: () => void };
+type GrammarSessionProps = { onDone: () => void; topicId?: number };
 
-export function GrammarSession({ onDone }: GrammarSessionProps) {
-  const { phase, answer, setAnswer, fetchNext, submitAnswer, finish } = useGrammarSession();
+export function GrammarSession({ onDone, topicId }: GrammarSessionProps) {
+  const { phase, answer, setAnswer, fetchNext, submitAnswer, finish } = useGrammarSession(topicId);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const finishAndExit = async () => {

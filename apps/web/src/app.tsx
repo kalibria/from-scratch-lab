@@ -9,7 +9,13 @@ import { AgentDashboard } from './agent-dashboard/AgentDashboard.js';
 import { RecitationSession } from './recitation/RecitationSession.js';
 import { GrammarSession } from './grammar/GrammarSession.js';
 import { BrowseSession } from './browse-session/BrowseSession.js';
-import type { Session, SessionMode, StudyTopic, SuggestedPhrase } from './types.js';
+import { LessonHub } from './lessons/LessonHub.js';
+import { LessonDetail } from './lessons/LessonDetail.js';
+import { LessonWritingStep } from './lessons/LessonWritingStep.js';
+import { LessonSpeakingStep } from './lessons/LessonSpeakingStep.js';
+import { LessonCheckpoint } from './lessons/LessonCheckpoint.js';
+import { markLessonStep } from './lessons/mark-lesson-step.js';
+import type { Session, SessionMode, StudyTopic, SuggestedPhrase, ReturnDestination } from './types.js';
 
 type View =
   | { name: 'dashboard' }
@@ -19,8 +25,13 @@ type View =
   | { name: 'agent-dashboard' }
   | { name: 'add-phrase' }
   | { name: 'recitation' }
-  | { name: 'grammar' }
-  | { name: 'browse'; topics: StudyTopic[] };
+  | { name: 'grammar'; topicId?: number; returnTo?: ReturnDestination }
+  | { name: 'browse'; topics: StudyTopic[]; returnTo?: ReturnDestination }
+  | { name: 'lesson-hub' }
+  | { name: 'lesson'; lessonId: number }
+  | { name: 'lesson-writing'; lessonId: number }
+  | { name: 'lesson-speaking'; lessonId: number }
+  | { name: 'lesson-checkpoint'; lessonId: number };
 
 export function App() {
   const [view, setView] = useState<View>({ name: 'dashboard' });
@@ -39,12 +50,71 @@ export function App() {
           onOpenRecitation={() => setView({ name: 'recitation' })}
           onOpenGrammar={() => setView({ name: 'grammar' })}
           onOpenBrowse={(topics) => setView({ name: 'browse', topics })}
+          onOpenLessons={() => setView({ name: 'lesson-hub' })}
         />
       )}
       {view.name === 'recitation' && <RecitationSession onDone={() => setView({ name: 'dashboard' })} />}
-      {view.name === 'grammar' && <GrammarSession onDone={() => setView({ name: 'dashboard' })} />}
+      {view.name === 'grammar' && (
+        <GrammarSession
+          topicId={view.topicId}
+          onDone={async () => {
+            if (view.returnTo?.name === 'lesson') {
+              await markLessonStep(view.returnTo.lessonId, 'grammar');
+            }
+            setView(view.returnTo ?? { name: 'dashboard' });
+          }}
+        />
+      )}
       {view.name === 'browse' && (
-        <BrowseSession topics={view.topics} onDone={() => setView({ name: 'dashboard' })} />
+        <BrowseSession
+          topics={view.topics}
+          backLabel={view.returnTo?.name === 'lesson' ? 'Back to lesson' : undefined}
+          onDone={async () => {
+            if (view.returnTo?.name === 'lesson') {
+              await markLessonStep(view.returnTo.lessonId, 'vocab');
+            }
+            setView(view.returnTo ?? { name: 'dashboard' });
+          }}
+        />
+      )}
+      {view.name === 'lesson-hub' && (
+        <LessonHub
+          onOpenLesson={(lessonId) => setView({ name: 'lesson', lessonId })}
+          onDone={() => setView({ name: 'dashboard' })}
+        />
+      )}
+      {view.name === 'lesson' && (
+        <LessonDetail
+          lessonId={view.lessonId}
+          onOpenVocab={(vocabCategory, lessonId) =>
+            setView({ name: 'browse', topics: [vocabCategory], returnTo: { name: 'lesson', lessonId } })
+          }
+          onOpenGrammar={(topicId, lessonId) =>
+            setView({ name: 'grammar', topicId, returnTo: { name: 'lesson', lessonId } })
+          }
+          onOpenWriting={(lessonId) => setView({ name: 'lesson-writing', lessonId })}
+          onOpenSpeaking={(lessonId) => setView({ name: 'lesson-speaking', lessonId })}
+          onOpenCheckpoint={(lessonId) => setView({ name: 'lesson-checkpoint', lessonId })}
+          onDone={() => setView({ name: 'lesson-hub' })}
+        />
+      )}
+      {view.name === 'lesson-writing' && (
+        <LessonWritingStep
+          lessonId={view.lessonId}
+          onDone={() => setView({ name: 'lesson', lessonId: view.lessonId })}
+        />
+      )}
+      {view.name === 'lesson-speaking' && (
+        <LessonSpeakingStep
+          lessonId={view.lessonId}
+          onDone={() => setView({ name: 'lesson', lessonId: view.lessonId })}
+        />
+      )}
+      {view.name === 'lesson-checkpoint' && (
+        <LessonCheckpoint
+          lessonId={view.lessonId}
+          onDone={() => setView({ name: 'lesson', lessonId: view.lessonId })}
+        />
       )}
       {view.name === 'free-talk' && (
         <FreeTalkSession

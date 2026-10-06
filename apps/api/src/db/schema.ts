@@ -123,6 +123,49 @@ export const grammarExerciseAttempts = pgTable('grammar_exercise_attempts', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const lessons = pgTable('lessons', {
+  id: serial('id').primaryKey(),
+  number: integer('number').notNull(),
+  title: text('title').notNull(),
+  sourceBook: text('source_book').notNull(),
+  level: text('level').notNull(),
+  vocabCategory: text('vocab_category').notNull(),
+  vocabTheme: text('vocab_theme').notNull(),
+  grammarTopicId: integer('grammar_topic_id')
+    .references(() => grammarTopics.id)
+    .notNull(),
+  speakingPrompt: text('speaking_prompt').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const lessonProgress = pgTable('lesson_progress', {
+  lessonId: integer('lesson_id')
+    .references(() => lessons.id)
+    .primaryKey(),
+  vocabCompletedAt: timestamp('vocab_completed_at'),
+  grammarCompletedAt: timestamp('grammar_completed_at'),
+  writingCompletedAt: timestamp('writing_completed_at'),
+  speakingCompletedAt: timestamp('speaking_completed_at'),
+  checkpointCompletedAt: timestamp('checkpoint_completed_at'),
+  checkpointScore: integer('checkpoint_score'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const lessonWritingAttempts = pgTable('lesson_writing_attempts', {
+  id: serial('id').primaryKey(),
+  sessionId: integer('session_id')
+    .references(() => sessions.id)
+    .notNull(),
+  lessonId: integer('lesson_id')
+    .references(() => lessons.id)
+    .notNull(),
+  prompt: text('prompt').notNull(),
+  userResponse: text('user_response').notNull(),
+  verdict: text('verdict').notNull(),
+  agentFeedback: text('agent_feedback'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const agentCalls = pgTable('agent_calls', {
   id: serial('id').primaryKey(),
   functionName: text('function_name').notNull(),
