@@ -10,9 +10,10 @@ import type { Session, SuggestedPhrase } from '../types.js';
 type FreeTalkSessionProps = {
   session: Session;
   onComplete: (suggestedPhrases: SuggestedPhrase[], session: Session) => void;
+  onExit: () => void;
 };
 
-export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
+export function FreeTalkSession({ session, onComplete, onExit }: FreeTalkSessionProps) {
   const {
     phase,
     response,
@@ -27,11 +28,11 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
   const speakingTimer = formatSpeakingTimer(answerRemainingMs);
 
   if (phase.status === 'loading') {
-    return <Spinner message="Getting your topic ready..." />;
+    return <Spinner message="Getting your topic ready..." onExit={onExit} />;
   }
 
   if (phase.status === 'analyzing') {
-    return <Spinner message="Your virtual English teacher is processing your request..." />;
+    return <Spinner message="Your virtual English teacher is processing your request..." onExit={onExit} />;
   }
 
   if (phase.status === 'no-response') {
@@ -41,8 +42,11 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
         <button onClick={retry} className="mb-3 w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
           Try a new topic
         </button>
-        <button onClick={() => onComplete([], session)} className="w-full text-sm text-ink-soft underline">
+        <button onClick={() => onComplete([], session)} className="mb-3 w-full text-sm text-ink-soft underline">
           Skip and go to drill
+        </button>
+        <button onClick={onExit} className="w-full text-sm text-ink-soft underline">
+          Back to dashboard
         </button>
       </div>
     );
@@ -55,8 +59,11 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
         <button onClick={retry} className="mb-3 w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
           Retry
         </button>
-        <button onClick={() => onComplete([], session)} className="w-full text-sm text-ink-soft underline">
+        <button onClick={() => onComplete([], session)} className="mb-3 w-full text-sm text-ink-soft underline">
           Skip and go to drill
+        </button>
+        <button onClick={onExit} className="w-full text-sm text-ink-soft underline">
+          Back to dashboard
         </button>
       </div>
     );
@@ -65,7 +72,10 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
   if (phase.status === 'reading') {
     return (
       <div className="mx-auto max-w-sm px-5 py-8">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
+          <button onClick={onExit} className="text-sm text-ink-soft underline">
+            End session
+          </button>
           <SessionTimer deadline={getSessionDeadline(session)} />
         </div>
 
@@ -86,8 +96,13 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
   if (phase.status === 'answering') {
     return (
       <div className="mx-auto max-w-sm px-5 py-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
+          <button onClick={onExit} className="text-sm text-ink-soft underline">
+            End session
+          </button>
           <SessionTimer deadline={getSessionDeadline(session)} />
+        </div>
+        <div className="mb-4 flex justify-end">
           <span
             className={`rounded-full border px-3 py-1 text-sm tabular-nums ${
               speakingTimer.isOvertime
@@ -138,6 +153,9 @@ export function FreeTalkSession({ session, onComplete }: FreeTalkSessionProps) {
 
   return (
     <div className="mx-auto max-w-sm px-5 py-8">
+      <button onClick={onExit} className="mb-4 text-sm text-ink-soft underline">
+        End session
+      </button>
       <p className="mb-4 text-sm text-ink-soft">Feedback</p>
 
       {analysis.grammar && <Section title="Grammar" text={analysis.grammar} />}

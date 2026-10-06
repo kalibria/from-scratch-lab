@@ -80,6 +80,9 @@ export function AddPhrase({ onDone }: AddPhraseProps) {
         >
           Add
         </button>
+        <button onClick={onDone} className="mt-3 w-full text-center text-sm text-ink-soft underline">
+          Back to dashboard
+        </button>
       </div>
     );
   }
@@ -101,6 +104,9 @@ export function AddPhrase({ onDone }: AddPhraseProps) {
         className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white disabled:opacity-50"
       >
         {phase.status === 'extracting' ? 'Analyzing...' : 'Extract'}
+      </button>
+      <button onClick={onDone} className="mt-3 w-full text-center text-sm text-ink-soft underline">
+        Back to dashboard
       </button>
     </div>
   );

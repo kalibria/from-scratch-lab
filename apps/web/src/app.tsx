@@ -54,6 +54,7 @@ export function App() {
               ? setView({ name: 'session-summary', session, suggestedPhrases, comebackPhrases: [] })
               : setView({ name: 'drill', session, suggestedPhrases, topics: view.topics })
           }
+          onExit={() => setView({ name: 'dashboard' })}
         />
       )}
       {view.name === 'drill' && (

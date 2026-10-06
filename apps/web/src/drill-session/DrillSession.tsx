@@ -87,11 +87,11 @@ export function DrillSession({ session, topics, onFinish }: DrillSessionProps) {
   }
 
   if (phase.status === 'loading') {
-    return <Spinner message="Finding your next phrase..." />;
+    return <Spinner message="Finding your next phrase..." onExit={requestExit} />;
   }
 
   if (phase.status === 'evaluating') {
-    return <Spinner message="Your English teacher is checking your answer..." />;
+    return <Spinner message="Your English teacher is checking your answer..." onExit={requestExit} />;
   }
 
   return (

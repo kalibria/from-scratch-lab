@@ -8,7 +8,7 @@ export function AgentDashboard({ onBack }: AgentDashboardProps) {
   const stats = useAgentStats();
 
   if (!stats) {
-    return <Spinner />;
+    return <Spinner onExit={onBack} />;
   }
 
   return (

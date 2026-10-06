@@ -59,19 +59,22 @@ export function RecitationSession({ onDone }: RecitationSessionProps) {
   }
 
   if (phase.status === 'generating') {
-    return <Spinner message="Writing your text..." />;
+    return <Spinner message="Writing your text..." onExit={onDone} />;
   }
 
   if (phase.status === 'evaluating') {
-    return <Spinner message="Listening..." />;
+    return <Spinner message="Listening..." onExit={onDone} />;
   }
 
   if (phase.status === 'error') {
     return (
       <div className="mx-auto max-w-sm px-5 py-8 text-center">
         <p className="mb-5 text-ink-soft">Couldn't reach the agent.</p>
-        <button onClick={reset} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
+        <button onClick={reset} className="mb-3 w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
           Start over
+        </button>
+        <button onClick={onDone} className="w-full text-sm text-ink-soft underline">
+          Back to dashboard
         </button>
       </div>
     );
@@ -91,6 +94,14 @@ export function RecitationSession({ onDone }: RecitationSessionProps) {
   if (phase.status === 'memorize') {
     return (
       <div className="mx-auto max-w-sm px-5 py-8">
+        <div className="mb-4 flex items-center justify-between">
+          <button onClick={onDone} className="text-sm text-ink-soft underline">
+            End session
+          </button>
+          <button onClick={() => generate(topic, category)} className="text-sm text-ink-soft underline">
+            Regenerate
+          </button>
+        </div>
         <p className="mb-2 text-sm text-ink-soft">Memorize this, then recite it in your own words</p>
         <div className="mb-5 rounded-2xl border border-border bg-surface-soft px-5 py-6 font-serif text-lg">
           {phase.text.content}
@@ -108,6 +119,9 @@ export function RecitationSession({ onDone }: RecitationSessionProps) {
   if (phase.status === 'listening') {
     return (
       <div className="mx-auto max-w-sm px-5 py-8">
+        <button onClick={onDone} className="mb-4 text-sm text-ink-soft underline">
+          End session
+        </button>
         <p className="mb-2 text-sm text-ink-soft">Recite it in your own words</p>
         <div className="mb-4 flex items-start gap-2">
           <textarea
@@ -142,6 +156,9 @@ export function RecitationSession({ onDone }: RecitationSessionProps) {
 
   return (
     <div className="mx-auto max-w-sm px-5 py-8">
+      <button onClick={onDone} className="mb-4 text-sm text-ink-soft underline">
+        End session
+      </button>
       <div className="mb-4 rounded-2xl bg-good/15 px-4 py-3.5">
         {latest.feedback && <p className="text-sm">{latest.feedback}</p>}
         {latest.corrections.length > 0 && (

@@ -53,7 +53,7 @@ export function BrowseSession({ topics, onDone }: BrowseSessionProps) {
   }
 
   if (phase === 'loading') {
-    return <Spinner message="Finding your next card..." />;
+    return <Spinner message="Finding your next card..." onExit={finishAndExit} />;
   }
 
   if (phase === 'error') {
@@ -98,7 +98,13 @@ export function BrowseSession({ topics, onDone }: BrowseSessionProps) {
   }
 
   if (!phrase) {
-    return null;
+    return (
+      <div className="mx-auto max-w-sm px-5 py-8 text-center">
+        <button onClick={finishAndExit} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
+          Back to dashboard
+        </button>
+      </div>
+    );
   }
 
   return (

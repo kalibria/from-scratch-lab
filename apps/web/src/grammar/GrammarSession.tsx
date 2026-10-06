@@ -32,11 +32,11 @@ export function GrammarSession({ onDone }: GrammarSessionProps) {
   }
 
   if (phase.status === 'loading') {
-    return <Spinner message="Finding a topic..." />;
+    return <Spinner message="Finding a topic..." onExit={() => setShowExitConfirm(true)} />;
   }
 
   if (phase.status === 'evaluating') {
-    return <Spinner message="Checking your answer..." />;
+    return <Spinner message="Checking your answer..." onExit={() => setShowExitConfirm(true)} />;
   }
 
   if (phase.status === 'empty') {
