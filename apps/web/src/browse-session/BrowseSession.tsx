@@ -14,7 +14,8 @@ export function BrowseSession({ topics, onDone, backLabel = 'Back to dashboard' 
     phrase,
     revealed,
     timerDisabled,
-    reviewedCount,
+    total,
+    learnedCount,
     start,
     reveal,
     grade,
@@ -71,7 +72,7 @@ export function BrowseSession({ topics, onDone, backLabel = 'Back to dashboard' 
     return (
       <div className="mx-auto max-w-sm px-5 py-8 text-center">
         <p className="mb-5 text-ink-soft">
-          {reviewedCount === 0 ? 'No phrases due right now.' : `You reviewed ${reviewedCount} cards.`}
+          {total === 0 ? 'No phrases due right now.' : `Learned ${learnedCount} of ${total} cards.`}
         </p>
         <button onClick={finishAndExit} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
           {backLabel}
@@ -114,7 +115,9 @@ export function BrowseSession({ topics, onDone, backLabel = 'Back to dashboard' 
           End session
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-ink-soft">{reviewedCount} reviewed</span>
+          <span className="text-xs text-ink-soft">
+            Learned {learnedCount} / {total}
+          </span>
           {session && !timerDisabled && <SessionTimer deadline={getSessionDeadline(session)} />}
         </div>
       </div>

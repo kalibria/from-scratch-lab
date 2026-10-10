@@ -7,40 +7,40 @@ import type { Phrase, Session, StudyTopic } from '../types.js';
 
 const BROWSE_PLANNED_MINUTES = 15;
 
+type QueueItem = Phrase & { expandedBeyondTopic: boolean };
+
 type Phase = 'setup' | 'loading' | 'active' | 'empty' | 'time-up' | 'error';
 
 export function useBrowseSession(topics: StudyTopic[]) {
   const [phase, setPhase] = useState<Phase>('setup');
   const [session, setSession] = useState<Session | null>(null);
-  const [phrase, setPhrase] = useState<(Phrase & { expandedBeyondTopic: boolean }) | null>(null);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [learnedCount, setLearnedCount] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [timerDisabled, setTimerDisabled] = useState(false);
-  const [reviewedCount, setReviewedCount] = useState(0);
   const submittingRef = useRef(false);
 
-  async function fetchNext(activeSession: Session, skipTimerCheck: boolean) {
-    if (!skipTimerCheck && !timerDisabled && isTimeUp(getSessionDeadline(activeSession), new Date())) {
-      setPhase('time-up');
-      return;
-    }
-
-    setPhase('loading');
-    setRevealed(false);
-
-    const topicsQuery = topics.length > 0 ? `&topics=${topics.join(',')}` : '';
-    const res = await apiFetch(`/drill/next?sessionId=${activeSession.id}&skipNewCap=true${topicsQuery}`);
-
-    if (res.status === 204) {
-      setPhase('empty');
-      return;
-    }
+  async function loadBatch() {
+    const topicsQuery = topics.length > 0 ? `?topics=${topics.join(',')}` : '';
+    const res = await apiFetch(`/drill/batch${topicsQuery}`);
 
     if (!res.ok) {
       setPhase('error');
       return;
     }
 
-    setPhrase(await res.json());
+    const data = await res.json();
+    const incoming: QueueItem[] = data.phrases;
+
+    if (incoming.length === 0) {
+      setPhase('empty');
+      return;
+    }
+
+    setQueue(incoming);
+    setTotal((count) => count + incoming.length);
+    setRevealed(false);
     setPhase('active');
   }
 
@@ -50,7 +50,7 @@ export function useBrowseSession(topics: StudyTopic[]) {
 
     const newSession = await startSession(BROWSE_PLANNED_MINUTES);
     setSession(newSession);
-    await fetchNext(newSession, true);
+    await loadBatch();
   }
 
   function reveal() {
@@ -58,28 +58,55 @@ export function useBrowseSession(topics: StudyTopic[]) {
   }
 
   async function grade(verdict: 'correct' | 'incorrect') {
-    if (!session || !phrase || submittingRef.current) {
+    if (!session || queue.length === 0 || submittingRef.current) {
       return;
     }
 
     submittingRef.current = true;
-    setPhase('loading');
+    const phrase = queue[0];
 
     await apiFetch('/drill/attempt', {
       method: 'POST',
       body: JSON.stringify({ sessionId: session.id, phraseId: phrase.id, userAnswer: '', selfVerdict: verdict }),
     });
 
-    setReviewedCount((count) => count + 1);
-    await fetchNext(session, false);
+    setRevealed(false);
+
+    if (verdict === 'correct') {
+      setLearnedCount((count) => count + 1);
+    }
+
+    const restOfQueue = verdict === 'correct' ? queue.slice(1) : [...queue.slice(1), phrase];
+
+    if (!timerDisabled && isTimeUp(getSessionDeadline(session), new Date())) {
+      setQueue(restOfQueue);
+      setPhase('time-up');
+      submittingRef.current = false;
+      return;
+    }
+
+    if (restOfQueue.length === 0) {
+      setPhase('loading');
+      await loadBatch();
+    } else {
+      setQueue(restOfQueue);
+    }
+
     submittingRef.current = false;
   }
 
-  function continueWithoutTimer() {
+  async function continueWithoutTimer() {
     setTimerDisabled(true);
 
-    if (session) {
-      fetchNext(session, true);
+    if (!session) {
+      return;
+    }
+
+    if (queue.length > 0) {
+      setPhase('active');
+    } else {
+      setPhase('loading');
+      await loadBatch();
     }
   }
 
@@ -92,10 +119,11 @@ export function useBrowseSession(topics: StudyTopic[]) {
   return {
     phase,
     session,
-    phrase,
+    phrase: queue[0] ?? null,
     revealed,
     timerDisabled,
-    reviewedCount,
+    total,
+    learnedCount,
     start,
     reveal,
     grade,

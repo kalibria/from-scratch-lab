@@ -45,7 +45,7 @@ export async function extractPhrases(text: string): Promise<ExtractedPhrase[]> {
         {
           role: 'system',
           content:
-            'You help a Russian-speaking B1-B2 English learner build a vocabulary deck. Extract distinct useful English phrases/collocations from the given text. If the text is already a list of phrases, just clean it up. For each, give a natural idiomatic Russian equivalent (not a literal translation) plus a short usage note explaining the context.',
+            "You help a Russian-speaking B1-B2 English learner build a vocabulary deck. Extract distinct useful English phrases/collocations from the given text. If the text is already a list of phrases, just clean it up. Only include phrases that are still in common use in modern everyday or neutral professional English. Skip anything archaic, overly literary/formal, bureaucratic, or that reads as dated/generational slang — a phrase only an older generation would say. For each phrase you keep, give a natural idiomatic Russian equivalent (not a literal translation) plus a short usage note explaining the context.",
         },
         { role: 'user', content: text },
       ],

@@ -96,6 +96,55 @@ async function findPhrase(sessionId: number, topicFilter: SQL | undefined, capNe
   );
 }
 
+const BROWSE_BATCH_SIZE = 20;
+
+async function selectDuePhrasesBatch(extraCondition: SQL, orderBy: SQL, topicFilter: SQL | undefined, limit: number) {
+  if (limit <= 0) {
+    return [];
+  }
+
+  return db
+    .select({ phrase: phrases, box: srsState.box })
+    .from(srsState)
+    .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
+    .where(and(lte(srsState.nextReviewAt, new Date()), extraCondition, topicFilter))
+    .orderBy(orderBy)
+    .limit(limit);
+}
+
+async function findPhraseBatch(topicFilter: SQL | undefined, limit: number) {
+  const struggling = await selectDuePhrasesBatch(
+    inArray(srsState.lastResult, ['incorrect', 'close']),
+    asc(srsState.nextReviewAt),
+    topicFilter,
+    limit,
+  );
+  const mastered = await selectDuePhrasesBatch(
+    eq(srsState.lastResult, 'correct'),
+    asc(srsState.nextReviewAt),
+    topicFilter,
+    limit - struggling.length,
+  );
+  const combined = [...struggling, ...mastered];
+  const remaining = limit - combined.length;
+
+  if (remaining <= 0) {
+    return combined;
+  }
+
+  const newPool = await db
+    .select({ phrase: phrases, box: srsState.box })
+    .from(srsState)
+    .innerJoin(phrases, eq(srsState.phraseId, phrases.id))
+    .where(and(lte(srsState.nextReviewAt, new Date()), isNull(srsState.lastResult), topicFilter))
+    .orderBy(desc(phrases.createdAt))
+    .limit(NEW_PHRASE_POOL_SIZE);
+
+  const shuffled = newPool.sort(() => Math.random() - 0.5).slice(0, remaining);
+
+  return [...combined, ...shuffled];
+}
+
 drillRouter.get('/next', async (req, res) => {
   const sessionId = Number(req.query.sessionId);
   const topicFilter = parseTopicFilter(req.query.topics);
@@ -116,6 +165,23 @@ drillRouter.get('/next', async (req, res) => {
   }
 
   res.status(204).end();
+});
+
+drillRouter.get('/batch', async (req, res) => {
+  const topicFilter = parseTopicFilter(req.query.topics);
+
+  let rows = await findPhraseBatch(topicFilter, BROWSE_BATCH_SIZE);
+  let expandedBeyondTopic = false;
+
+  if (rows.length === 0 && topicFilter && isWidenableTopicFilter(req.query.topics)) {
+    rows = await findPhraseBatch(undefined, BROWSE_BATCH_SIZE);
+    expandedBeyondTopic = rows.length > 0;
+  }
+
+  res.json({
+    phrases: rows.map((row) => ({ ...row.phrase, box: row.box })),
+    expandedBeyondTopic,
+  });
 });
 
 drillRouter.post('/attempt', async (req, res) => {
