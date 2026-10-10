@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { isNotNull } from 'drizzle-orm';
-import { createPhraseSchema, extractPhrasesRequestSchema, bulkAddPhrasesSchema } from '@app/shared';
+import { createPhraseSchema, extractPhrasesRequestSchema, bulkAddPhrasesSchema, confirmLessonPhrasesSchema } from '@app/shared';
 import { db } from '../db/client.js';
 import { phrases } from '../db/schema.js';
 import { createPhraseWithSrs } from './create-phrase-with-srs.js';
@@ -57,6 +57,19 @@ phrasesRouter.post('/bulk', async (req, res) => {
 
   const created = await createPhrasesWithSrs(
     parsed.data.phrases.map((p) => ({ ...p, source: 'manual' as const, category: parsed.data.category })),
+  );
+  res.status(201).json(created);
+});
+
+phrasesRouter.post('/confirm', async (req, res) => {
+  const parsed = confirmLessonPhrasesSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten() });
+  }
+
+  const created = await createPhrasesWithSrs(
+    parsed.data.phrases.map((p) => ({ ...p, source: parsed.data.source })),
   );
   res.status(201).json(created);
 });

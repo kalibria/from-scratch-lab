@@ -2,6 +2,7 @@ import { useLessonSpeakingStep } from './use-lesson-speaking-step.js';
 import { Spinner } from '../components/Spinner.js';
 import { MicButton } from '../components/MicButton.js';
 import { TalkAnalysisFeedback } from '../components/TalkAnalysisFeedback.js';
+import { SuggestedPhrasesConfirm } from '../components/SuggestedPhrasesConfirm.js';
 
 type LessonSpeakingStepProps = { lessonId: number; onDone: () => void };
 
@@ -43,6 +44,7 @@ export function LessonSpeakingStep({ lessonId, onDone }: LessonSpeakingStepProps
         </button>
         <p className="mb-4 text-sm text-ink-soft">Feedback</p>
         <TalkAnalysisFeedback analysis={phase.analysis} />
+        <SuggestedPhrasesConfirm suggestedPhrases={phase.analysis.suggestedPhrases} source="lesson_speaking" />
         <button onClick={finishAndExit} className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white">
           Done
         </button>

@@ -65,6 +65,7 @@ export function App() {
       {view.name === 'grammar' && (
         <GrammarSession
           topicId={view.topicId}
+          maxItems={view.returnTo?.name === 'lesson' ? 5 : undefined}
           onDone={async () => {
             if (view.returnTo?.name === 'lesson') {
               await markLessonStep(view.returnTo.lessonId, 'grammar');

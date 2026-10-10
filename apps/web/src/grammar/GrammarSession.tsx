@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { useGrammarSession } from './use-grammar-session.js';
 import { Spinner } from '../components/Spinner.js';
 import { BoxDots } from '../components/BoxDots.js';
+import { SuggestedPhrasesConfirm } from '../components/SuggestedPhrasesConfirm.js';
 
-type GrammarSessionProps = { onDone: () => void; topicId?: number };
+type GrammarSessionProps = { onDone: () => void; topicId?: number; maxItems?: number };
 
-export function GrammarSession({ onDone, topicId }: GrammarSessionProps) {
-  const { phase, answer, setAnswer, fetchNext, submitAnswer, finish } = useGrammarSession(topicId);
+export function GrammarSession({ onDone, topicId, maxItems }: GrammarSessionProps) {
+  const { phase, answer, setAnswer, fetchNext, submitAnswer, finish, completedCount } = useGrammarSession(
+    topicId,
+    maxItems,
+  );
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const finishAndExit = async () => {
@@ -37,6 +41,19 @@ export function GrammarSession({ onDone, topicId }: GrammarSessionProps) {
 
   if (phase.status === 'evaluating') {
     return <Spinner message="Checking your answer..." onExit={() => setShowExitConfirm(true)} />;
+  }
+
+  if (phase.status === 'done') {
+    return (
+      <div className="mx-auto max-w-sm px-5 py-8 text-center">
+        <p className="mb-5 text-ink-soft">
+          Done — {phase.correctCount}/{phase.completedCount} correct.
+        </p>
+        <button onClick={onDone} className="w-full rounded-2xl bg-accent px-4 py-3 font-semibold text-white">
+          Back to lesson
+        </button>
+      </div>
+    );
   }
 
   if (phase.status === 'empty') {
@@ -71,7 +88,7 @@ export function GrammarSession({ onDone, topicId }: GrammarSessionProps) {
           End session
         </button>
         <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-ink-soft">
-          {phase.exercise.level}
+          {maxItems ? `${Math.min(completedCount + 1, maxItems)} / ${maxItems}` : phase.exercise.level}
         </span>
       </div>
 
@@ -124,6 +141,7 @@ export function GrammarSession({ onDone, topicId }: GrammarSessionProps) {
               <BoxDots box={phase.box} />
             </div>
           </div>
+          <SuggestedPhrasesConfirm suggestedPhrases={phase.suggestedPhrases} source="grammar_feedback" />
           <button
             onClick={fetchNext}
             className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white"

@@ -14,13 +14,34 @@ const VERDICT_TOOL = {
           type: 'string',
           description: 'Brief feedback in English, plain text only. Explain why, and show the correct form if wrong.',
         },
+        suggestedPhrases: {
+          type: 'array',
+          description:
+            '0-2 phrases genuinely worth memorizing that came up in this exercise or its correction. Leave empty if nothing stands out — do not force it.',
+          items: {
+            type: 'object',
+            properties: {
+              enText: { type: 'string' },
+              ruGloss: {
+                type: 'string',
+                description: 'A natural, idiomatic Russian equivalent, not a literal translation.',
+              },
+              usageNote: { type: 'string', description: 'One short sentence in Russian on when to use it.' },
+            },
+            required: ['enText'],
+          },
+        },
       },
-      required: ['verdict', 'feedback'],
+      required: ['verdict', 'feedback', 'suggestedPhrases'],
     },
   },
 };
 
-export type GrammarVerdict = { verdict: 'correct' | 'incorrect' | 'close'; feedback: string };
+export type GrammarVerdict = {
+  verdict: 'correct' | 'incorrect' | 'close';
+  feedback: string;
+  suggestedPhrases: { enText: string; ruGloss?: string; usageNote?: string }[];
+};
 
 export async function evaluateGrammarAnswer(
   topicName: string,

@@ -108,6 +108,18 @@ export const grammarTopicState = pgTable('grammar_topic_state', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const grammarExercises = pgTable('grammar_exercises', {
+  id: serial('id').primaryKey(),
+  topicId: integer('topic_id')
+    .references(() => grammarTopics.id)
+    .notNull(),
+  type: text('type').notNull(),
+  prompt: text('prompt').notNull(),
+  correctAnswer: text('correct_answer'),
+  level: text('level').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const grammarExerciseAttempts = pgTable('grammar_exercise_attempts', {
   id: serial('id').primaryKey(),
   sessionId: integer('session_id')
@@ -116,6 +128,7 @@ export const grammarExerciseAttempts = pgTable('grammar_exercise_attempts', {
   topicId: integer('topic_id')
     .references(() => grammarTopics.id)
     .notNull(),
+  exerciseId: integer('exercise_id').references(() => grammarExercises.id),
   exercisePrompt: text('exercise_prompt').notNull(),
   userAnswer: text('user_answer').notNull(),
   verdict: text('verdict').notNull(),

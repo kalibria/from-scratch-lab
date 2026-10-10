@@ -16,6 +16,7 @@ const BUILT_IN_TOPIC_OPTIONS: { value: StudyTopic; label: string }[] = [
   { value: 'phrasal_verb', label: 'Phrasal verbs' },
   { value: 'idiom', label: 'Idioms' },
   { value: 'free_talk', label: 'From free-talk' },
+  { value: 'lesson_feedback', label: 'From lessons' },
 ];
 
 type QuickMode = 'free-talk' | 'drill' | 'flashcards';

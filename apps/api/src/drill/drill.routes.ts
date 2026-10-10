@@ -11,7 +11,8 @@ export const drillRouter = Router();
 
 const NEW_PHRASE_POOL_SIZE = 30;
 const MAX_NEW_PHRASES_PER_SESSION = 5;
-const BUILT_IN_TOPICS = new Set(['collocation', 'phrasal_verb', 'idiom', 'free_talk']);
+const BUILT_IN_TOPICS = new Set(['collocation', 'phrasal_verb', 'idiom', 'free_talk', 'lesson_feedback']);
+const LESSON_FEEDBACK_SOURCES = ['lesson_writing', 'lesson_speaking', 'grammar_feedback'];
 
 function parseTopicFilter(raw: unknown): SQL | undefined {
   const values = typeof raw === 'string' ? raw.split(',').filter(Boolean) : [];
@@ -21,7 +22,8 @@ function parseTopicFilter(raw: unknown): SQL | undefined {
   }
 
   const includeFreeTalk = values.includes('free_talk');
-  const categories = values.filter((v) => v !== 'free_talk');
+  const includeLessonFeedback = values.includes('lesson_feedback');
+  const categories = values.filter((v) => v !== 'free_talk' && v !== 'lesson_feedback');
 
   const conditions: SQL[] = [];
   if (categories.length > 0) {
@@ -29,6 +31,9 @@ function parseTopicFilter(raw: unknown): SQL | undefined {
   }
   if (includeFreeTalk) {
     conditions.push(eq(phrases.source, 'free_talk'));
+  }
+  if (includeLessonFeedback) {
+    conditions.push(inArray(phrases.source, LESSON_FEEDBACK_SOURCES));
   }
 
   return or(...conditions);

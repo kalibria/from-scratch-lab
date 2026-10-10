@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../api-client.js';
 import { startSession } from '../dashboard/start-session.js';
-import type { Session } from '../types.js';
+import type { Session, SuggestedPhrase } from '../types.js';
 
 const GRAMMAR_PLANNED_MINUTES = 10;
 
 type Verdict = 'correct' | 'incorrect' | 'close';
 
-export type GrammarExercise = { topicId: number; topicName: string; level: string; box: number; prompt: string };
+export type GrammarExercise = {
+  topicId: number;
+  topicName: string;
+  level: string;
+  box: number;
+  exerciseId: number | null;
+  prompt: string;
+};
 
 type Phase =
   | { status: 'loading' }
@@ -20,16 +27,28 @@ type Phase =
       feedback: string;
       box: number;
       previousBox: number;
+      suggestedPhrases: SuggestedPhrase[];
     }
+  | { status: 'done'; completedCount: number; correctCount: number }
   | { status: 'empty' }
   | { status: 'error' };
 
-export function useGrammarSession(topicId?: number) {
+export function useGrammarSession(topicId?: number, maxItems?: number) {
   const [phase, setPhase] = useState<Phase>({ status: 'loading' });
   const [answer, setAnswer] = useState('');
   const [session, setSession] = useState<Session | null>(null);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
 
-  async function fetchNext() {
+  async function fetchNext(activeSession: Session | null = session) {
+    if (maxItems !== undefined && completedCount >= maxItems) {
+      if (activeSession) {
+        await apiFetch(`/sessions/${activeSession.id}/end`, { method: 'PATCH' });
+      }
+      setPhase({ status: 'done', completedCount, correctCount });
+      return;
+    }
+
     setPhase({ status: 'loading' });
     setAnswer('');
 
@@ -50,8 +69,10 @@ export function useGrammarSession(topicId?: number) {
   }
 
   useEffect(() => {
-    startSession(GRAMMAR_PLANNED_MINUTES).then(setSession);
-    fetchNext();
+    startSession(GRAMMAR_PLANNED_MINUTES).then((newSession) => {
+      setSession(newSession);
+      fetchNext(newSession);
+    });
   }, []);
 
   async function submitAnswer() {
@@ -73,6 +94,7 @@ export function useGrammarSession(topicId?: number) {
       body: JSON.stringify({
         sessionId: session.id,
         topicId: exercise.topicId,
+        exerciseId: exercise.exerciseId,
         exercisePrompt: exercise.prompt,
         userAnswer,
       }),
@@ -84,6 +106,11 @@ export function useGrammarSession(topicId?: number) {
     }
 
     const result = await res.json();
+    setCompletedCount((count) => count + 1);
+    if (result.verdict === 'correct') {
+      setCorrectCount((count) => count + 1);
+    }
+
     setPhase({
       status: 'feedback',
       exercise,
@@ -91,6 +118,7 @@ export function useGrammarSession(topicId?: number) {
       feedback: result.feedback,
       box: result.box,
       previousBox: result.previousBox,
+      suggestedPhrases: result.suggestedPhrases ?? [],
     });
   }
 
@@ -100,5 +128,14 @@ export function useGrammarSession(topicId?: number) {
     }
   }
 
-  return { phase, answer, setAnswer, fetchNext, submitAnswer, finish };
+  return {
+    phase,
+    answer,
+    setAnswer,
+    fetchNext: () => fetchNext(),
+    submitAnswer,
+    finish,
+    completedCount,
+    maxItems,
+  };
 }

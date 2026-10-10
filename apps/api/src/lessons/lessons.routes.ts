@@ -138,7 +138,7 @@ lessonsRouter.post('/writing-attempt', async (req, res) => {
     return res.status(404).json({ error: 'lesson not found' });
   }
 
-  const { verdict, feedback, grammarTopic } = await evaluateWritingTask(
+  const { verdict, feedback, grammarTopic, suggestedPhrases } = await evaluateWritingTask(
     row.lesson.vocabTheme,
     row.grammarTopic.name,
     prompt,
@@ -156,5 +156,5 @@ lessonsRouter.post('/writing-attempt', async (req, res) => {
     agentFeedback: feedback,
   });
 
-  res.json({ verdict, feedback });
+  res.json({ verdict, feedback, suggestedPhrases });
 });

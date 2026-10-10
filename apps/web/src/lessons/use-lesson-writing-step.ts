@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '../api-client.js';
 import { startSession } from '../dashboard/start-session.js';
 import { markLessonStep } from './mark-lesson-step.js';
-import type { Session } from '../types.js';
+import type { Session, SuggestedPhrase } from '../types.js';
 
 const WRITING_PLANNED_MINUTES = 10;
 
@@ -12,7 +12,7 @@ type Phase =
   | { status: 'loading' }
   | { status: 'active'; prompt: string }
   | { status: 'evaluating'; prompt: string }
-  | { status: 'feedback'; prompt: string; verdict: Verdict; feedback: string }
+  | { status: 'feedback'; prompt: string; verdict: Verdict; feedback: string; suggestedPhrases: SuggestedPhrase[] }
   | { status: 'error' };
 
 export function useLessonWritingStep(lessonId: number) {
@@ -68,7 +68,13 @@ export function useLessonWritingStep(lessonId: number) {
 
     const result = await res.json();
     await markLessonStep(lessonId, 'writing');
-    setPhase({ status: 'feedback', prompt, verdict: result.verdict, feedback: result.feedback });
+    setPhase({
+      status: 'feedback',
+      prompt,
+      verdict: result.verdict,
+      feedback: result.feedback,
+      suggestedPhrases: result.suggestedPhrases ?? [],
+    });
   }
 
   async function finish() {

@@ -20,13 +20,35 @@ const VERDICT_TOOL = {
           description:
             'If there is a grammar mistake that matches one of the given topics, its exact name. Empty string otherwise.',
         },
+        suggestedPhrases: {
+          type: 'array',
+          description:
+            '0-2 phrases genuinely worth memorizing that came up in this task or its correction. Leave empty if nothing stands out — do not force it.',
+          items: {
+            type: 'object',
+            properties: {
+              enText: { type: 'string' },
+              ruGloss: {
+                type: 'string',
+                description: 'A natural, idiomatic Russian equivalent, not a literal translation.',
+              },
+              usageNote: { type: 'string', description: 'One short sentence in Russian on when to use it.' },
+            },
+            required: ['enText'],
+          },
+        },
       },
-      required: ['verdict', 'feedback', 'grammarTopic'],
+      required: ['verdict', 'feedback', 'grammarTopic', 'suggestedPhrases'],
     },
   },
 };
 
-export type WritingVerdict = { verdict: 'correct' | 'incorrect' | 'close'; feedback: string; grammarTopic: string };
+export type WritingVerdict = {
+  verdict: 'correct' | 'incorrect' | 'close';
+  feedback: string;
+  grammarTopic: string;
+  suggestedPhrases: { enText: string; ruGloss?: string; usageNote?: string }[];
+};
 
 export async function evaluateWritingTask(
   vocabTheme: string,

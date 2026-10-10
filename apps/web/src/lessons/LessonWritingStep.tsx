@@ -1,6 +1,7 @@
 import { useLessonWritingStep } from './use-lesson-writing-step.js';
 import { Spinner } from '../components/Spinner.js';
 import { MicButton } from '../components/MicButton.js';
+import { SuggestedPhrasesConfirm } from '../components/SuggestedPhrasesConfirm.js';
 
 type LessonWritingStepProps = { lessonId: number; onDone: () => void };
 
@@ -75,6 +76,7 @@ export function LessonWritingStep({ lessonId, onDone }: LessonWritingStepProps) 
           >
             <p className="text-sm">{phase.feedback}</p>
           </div>
+          <SuggestedPhrasesConfirm suggestedPhrases={phase.suggestedPhrases} source="lesson_writing" />
           <button onClick={finishAndExit} className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white">
             Done
           </button>
