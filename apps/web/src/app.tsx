@@ -14,6 +14,8 @@ import { LessonHub } from './lessons/LessonHub.js';
 import { LessonDetail } from './lessons/LessonDetail.js';
 import { LessonWritingStep } from './lessons/LessonWritingStep.js';
 import { LessonSpeakingStep } from './lessons/LessonSpeakingStep.js';
+import { LessonReadingStep } from './lessons/LessonReadingStep.js';
+import { LessonVideoStep } from './lessons/LessonVideoStep.js';
 import { LessonCheckpoint } from './lessons/LessonCheckpoint.js';
 import { markLessonStep } from './lessons/mark-lesson-step.js';
 import type { Session, SessionMode, StudyTopic, SuggestedPhrase, ReturnDestination } from './types.js';
@@ -33,6 +35,8 @@ type View =
   | { name: 'lesson'; lessonId: number }
   | { name: 'lesson-writing'; lessonId: number }
   | { name: 'lesson-speaking'; lessonId: number }
+  | { name: 'lesson-reading'; lessonId: number }
+  | { name: 'lesson-video'; lessonId: number }
   | { name: 'lesson-checkpoint'; lessonId: number };
 
 export function App() {
@@ -103,6 +107,8 @@ export function App() {
           }
           onOpenWriting={(lessonId) => setView({ name: 'lesson-writing', lessonId })}
           onOpenSpeaking={(lessonId) => setView({ name: 'lesson-speaking', lessonId })}
+          onOpenReading={(lessonId) => setView({ name: 'lesson-reading', lessonId })}
+          onOpenVideo={(lessonId) => setView({ name: 'lesson-video', lessonId })}
           onOpenCheckpoint={(lessonId) => setView({ name: 'lesson-checkpoint', lessonId })}
           onDone={() => setView({ name: 'lesson-hub' })}
         />
@@ -115,6 +121,18 @@ export function App() {
       )}
       {view.name === 'lesson-speaking' && (
         <LessonSpeakingStep
+          lessonId={view.lessonId}
+          onDone={() => setView({ name: 'lesson', lessonId: view.lessonId })}
+        />
+      )}
+      {view.name === 'lesson-reading' && (
+        <LessonReadingStep
+          lessonId={view.lessonId}
+          onDone={() => setView({ name: 'lesson', lessonId: view.lessonId })}
+        />
+      )}
+      {view.name === 'lesson-video' && (
+        <LessonVideoStep
           lessonId={view.lessonId}
           onDone={() => setView({ name: 'lesson', lessonId: view.lessonId })}
         />

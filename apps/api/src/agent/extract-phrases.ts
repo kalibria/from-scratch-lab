@@ -53,7 +53,7 @@ export async function extractPhrases(text: string): Promise<ExtractedPhrase[]> {
       tool_choice: { type: 'function', function: { name: 'submit_phrases' } },
     });
 
-    const toolCall = response.choices[0].message.tool_calls?.[0];
+    const toolCall = response.choices?.[0]?.message.tool_calls?.[0];
 
     if (!toolCall || toolCall.type !== 'function') {
       throw new Error('Model did not return a tool call for submit_phrases');

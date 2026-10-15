@@ -12,7 +12,13 @@ export const drillRouter = Router();
 const NEW_PHRASE_POOL_SIZE = 30;
 const MAX_NEW_PHRASES_PER_SESSION = 5;
 const BUILT_IN_TOPICS = new Set(['collocation', 'phrasal_verb', 'idiom', 'free_talk', 'lesson_feedback']);
-const LESSON_FEEDBACK_SOURCES = ['lesson_writing', 'lesson_speaking', 'grammar_feedback'];
+const LESSON_FEEDBACK_SOURCES = [
+  'lesson_writing',
+  'lesson_speaking',
+  'lesson_reading',
+  'lesson_video',
+  'grammar_feedback',
+];
 
 function parseTopicFilter(raw: unknown): SQL | undefined {
   const values = typeof raw === 'string' ? raw.split(',').filter(Boolean) : [];

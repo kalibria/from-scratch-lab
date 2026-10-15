@@ -148,6 +148,8 @@ export const lessons = pgTable('lessons', {
     .references(() => grammarTopics.id)
     .notNull(),
   speakingPrompt: text('speaking_prompt').notNull(),
+  videoUrl: text('video_url'),
+  videoTitle: text('video_title'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -159,9 +161,34 @@ export const lessonProgress = pgTable('lesson_progress', {
   grammarCompletedAt: timestamp('grammar_completed_at'),
   writingCompletedAt: timestamp('writing_completed_at'),
   speakingCompletedAt: timestamp('speaking_completed_at'),
+  readingCompletedAt: timestamp('reading_completed_at'),
+  videoCompletedAt: timestamp('video_completed_at'),
   checkpointCompletedAt: timestamp('checkpoint_completed_at'),
   checkpointScore: integer('checkpoint_score'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const lessonReadingSessions = pgTable('lesson_reading_sessions', {
+  id: serial('id').primaryKey(),
+  sessionId: integer('session_id')
+    .references(() => sessions.id)
+    .notNull(),
+  lessonId: integer('lesson_id')
+    .references(() => lessons.id)
+    .notNull(),
+  textContent: text('text_content').notNull(),
+  status: text('status').notNull().default('active'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const lessonReadingTurns = pgTable('lesson_reading_turns', {
+  id: serial('id').primaryKey(),
+  lessonReadingSessionId: integer('lesson_reading_session_id')
+    .references(() => lessonReadingSessions.id)
+    .notNull(),
+  role: text('role').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const lessonWritingAttempts = pgTable('lesson_writing_attempts', {

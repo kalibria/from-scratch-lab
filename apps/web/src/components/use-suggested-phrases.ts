@@ -2,7 +2,12 @@ import { useState } from 'react';
 import { apiFetch } from '../api-client.js';
 import type { SuggestedPhrase } from '../types.js';
 
-export type LessonPhraseSource = 'lesson_writing' | 'lesson_speaking' | 'grammar_feedback';
+export type LessonPhraseSource =
+  | 'lesson_writing'
+  | 'lesson_speaking'
+  | 'lesson_reading'
+  | 'lesson_video'
+  | 'grammar_feedback';
 
 export function useSuggestedPhrases(suggestedPhrases: SuggestedPhrase[], source: LessonPhraseSource) {
   const [selected, setSelected] = useState<Set<string>>(new Set(suggestedPhrases.map((p) => p.enText)));

@@ -7,6 +7,8 @@ type LessonDetailProps = {
   onOpenGrammar: (topicId: number, lessonId: number) => void;
   onOpenWriting: (lessonId: number) => void;
   onOpenSpeaking: (lessonId: number) => void;
+  onOpenReading: (lessonId: number) => void;
+  onOpenVideo: (lessonId: number) => void;
   onOpenCheckpoint: (lessonId: number) => void;
   onDone: () => void;
 };
@@ -17,6 +19,8 @@ export function LessonDetail({
   onOpenGrammar,
   onOpenWriting,
   onOpenSpeaking,
+  onOpenReading,
+  onOpenVideo,
   onOpenCheckpoint,
   onDone,
 }: LessonDetailProps) {
@@ -76,6 +80,18 @@ export function LessonDetail({
           description={lesson.speakingPrompt}
           done={lesson.progress.speakingDone}
           onClick={() => onOpenSpeaking(lesson.id)}
+        />
+        <StepCard
+          label="Reading"
+          description="Read an article, then discuss it"
+          done={lesson.progress.readingDone}
+          onClick={() => onOpenReading(lesson.id)}
+        />
+        <StepCard
+          label="Video"
+          description={lesson.videoTitle ?? 'Watch a short video and reflect'}
+          done={lesson.progress.videoDone}
+          onClick={() => onOpenVideo(lesson.id)}
         />
         <StepCard
           label="Checkpoint"

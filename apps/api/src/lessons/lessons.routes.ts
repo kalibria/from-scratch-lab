@@ -1,13 +1,32 @@
 import { Router } from 'express';
-import { asc, eq } from 'drizzle-orm';
-import { lessonProgressStepSchema, submitWritingAttemptSchema } from '@app/shared';
+import { asc, eq, sql } from 'drizzle-orm';
+import {
+  lessonProgressStepSchema,
+  submitWritingAttemptSchema,
+  startLessonReadingSchema,
+  submitLessonReadingTurnSchema,
+  submitLessonVideoReflectionSchema,
+} from '@app/shared';
 import { db } from '../db/client.js';
-import { lessons, lessonProgress, lessonWritingAttempts, grammarTopics } from '../db/schema.js';
+import {
+  lessons,
+  lessonProgress,
+  lessonWritingAttempts,
+  lessonReadingSessions,
+  lessonReadingTurns,
+  grammarTopics,
+  phrases,
+} from '../db/schema.js';
 import { generateWritingTask } from '../agent/generate-writing-task.js';
 import { evaluateWritingTask } from '../agent/evaluate-writing-task.js';
+import { generateLessonReading } from '../agent/generate-lesson-reading.js';
+import { discussLessonReading, type ConversationTurn } from '../agent/discuss-lesson-reading.js';
+import { extractPhrases } from '../agent/extract-phrases.js';
 import { flagGrammarMistake } from '../grammar/flag-grammar-mistake.js';
 
 export const lessonsRouter = Router();
+
+const READING_PHRASE_SAMPLE_SIZE = 8;
 
 async function loadLessonWithTopic(lessonId: number) {
   const [row] = await db
@@ -19,12 +38,25 @@ async function loadLessonWithTopic(lessonId: number) {
   return row ?? null;
 }
 
+async function sampleLessonVocab(vocabCategory: string): Promise<string[]> {
+  const rows = await db
+    .select({ enText: phrases.enText })
+    .from(phrases)
+    .where(eq(phrases.category, vocabCategory))
+    .orderBy(sql`random()`)
+    .limit(READING_PHRASE_SAMPLE_SIZE);
+
+  return rows.map((row) => row.enText);
+}
+
 function toProgressSummary(progress: typeof lessonProgress.$inferSelect | undefined) {
   return {
     vocabDone: Boolean(progress?.vocabCompletedAt),
     grammarDone: Boolean(progress?.grammarCompletedAt),
     writingDone: Boolean(progress?.writingCompletedAt),
     speakingDone: Boolean(progress?.speakingCompletedAt),
+    readingDone: Boolean(progress?.readingCompletedAt),
+    videoDone: Boolean(progress?.videoCompletedAt),
     checkpointDone: Boolean(progress?.checkpointCompletedAt),
     checkpointScore: progress?.checkpointScore ?? null,
   };
@@ -75,6 +107,8 @@ lessonsRouter.get('/:id', async (req, res) => {
     grammarTopicId: row.lesson.grammarTopicId,
     grammarTopicName: row.grammarTopic.name,
     speakingPrompt: row.lesson.speakingPrompt,
+    videoUrl: row.lesson.videoUrl,
+    videoTitle: row.lesson.videoTitle,
     progress: toProgressSummary(row.progress ?? undefined),
   });
 });
@@ -84,6 +118,8 @@ const STEP_COLUMNS = {
   grammar: 'grammarCompletedAt',
   writing: 'writingCompletedAt',
   speaking: 'speakingCompletedAt',
+  reading: 'readingCompletedAt',
+  video: 'videoCompletedAt',
   checkpoint: 'checkpointCompletedAt',
 } as const;
 
@@ -157,4 +193,95 @@ lessonsRouter.post('/writing-attempt', async (req, res) => {
   });
 
   res.json({ verdict, feedback, suggestedPhrases });
+});
+
+lessonsRouter.post('/:id/reading/start', async (req, res) => {
+  const id = Number(req.params.id);
+  const parsed = startLessonReadingSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten() });
+  }
+
+  const row = await loadLessonWithTopic(id);
+  if (!row) {
+    return res.status(404).json({ error: 'lesson not found' });
+  }
+
+  const vocab = await sampleLessonVocab(row.lesson.vocabCategory);
+  const { text, openingQuestion } = await generateLessonReading(row.lesson.vocabTheme, row.lesson.level, vocab);
+
+  const [readingSession] = await db
+    .insert(lessonReadingSessions)
+    .values({ sessionId: parsed.data.sessionId, lessonId: id, textContent: text })
+    .returning();
+
+  await db.insert(lessonReadingTurns).values({
+    lessonReadingSessionId: readingSession.id,
+    role: 'assistant',
+    content: openingQuestion,
+  });
+
+  res.status(201).json({ id: readingSession.id, textContent: text, openingQuestion });
+});
+
+lessonsRouter.post('/reading-turn', async (req, res) => {
+  const parsed = submitLessonReadingTurnSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten() });
+  }
+
+  const { lessonReadingSessionId, userUtterance } = parsed.data;
+
+  const [readingSession] = await db
+    .select()
+    .from(lessonReadingSessions)
+    .where(eq(lessonReadingSessions.id, lessonReadingSessionId));
+
+  if (!readingSession) {
+    return res.status(404).json({ error: 'reading session not found' });
+  }
+  if (readingSession.status === 'done') {
+    return res.status(409).json({ error: 'reading discussion already finished' });
+  }
+
+  const priorTurns = await db
+    .select({ role: lessonReadingTurns.role, content: lessonReadingTurns.content })
+    .from(lessonReadingTurns)
+    .where(eq(lessonReadingTurns.lessonReadingSessionId, lessonReadingSessionId))
+    .orderBy(asc(lessonReadingTurns.createdAt));
+
+  const history = priorTurns as ConversationTurn[];
+  const result = await discussLessonReading(readingSession.textContent, history, userUtterance);
+
+  for (const correction of result.corrections) {
+    await flagGrammarMistake(correction.topic);
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.insert(lessonReadingTurns).values({ lessonReadingSessionId, role: 'user', content: userUtterance });
+    await tx.insert(lessonReadingTurns).values({ lessonReadingSessionId, role: 'assistant', content: result.reply });
+
+    if (result.done) {
+      await tx
+        .update(lessonReadingSessions)
+        .set({ status: 'done' })
+        .where(eq(lessonReadingSessions.id, lessonReadingSessionId));
+    }
+  });
+
+  res.json(result);
+});
+
+lessonsRouter.post('/video-reflection', async (req, res) => {
+  const parsed = submitLessonVideoReflectionSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten() });
+  }
+
+  const phrases = await extractPhrases(parsed.data.reflection);
+
+  res.json({ phrases });
 });

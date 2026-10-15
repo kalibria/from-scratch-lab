@@ -9,6 +9,8 @@ export type LessonSeed = {
   vocabTheme: string;
   grammarTopicName: string;
   speakingPrompt: string;
+  videoUrl: string;
+  videoTitle: string;
 };
 
 export const LESSON_CURRICULUM: LessonSeed[] = [
@@ -21,6 +23,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'departments, job titles, and reporting lines in a company',
     grammarTopicName: 'Present Perfect vs Past Simple',
     speakingPrompt: "Describe your own team's structure and who you report to.",
+    videoUrl: "https://www.youtube.com/watch?v=goRABYAmZBs",
+    videoTitle: "Organizational Structure Explained: What You Need to Know",
   },
   {
     number: 2,
@@ -31,6 +35,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'LANs, WANs, routers, bandwidth, and connecting devices',
     grammarTopicName: 'First Conditional',
     speakingPrompt: "Explain what happens if your office Wi-Fi goes down and how you'd troubleshoot it.",
+    videoUrl: "https://www.youtube.com/watch?v=XFsq8MZxnjc",
+    videoTitle: "LAN vs WAN vs MAN: Network Types Explained for Beginners",
   },
   {
     number: 3,
@@ -41,6 +47,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'concessions, deadlines, and counter-offers in a negotiation',
     grammarTopicName: 'Second Conditional',
     speakingPrompt: 'Describe how you would negotiate a tighter deadline with a client.',
+    videoUrl: "https://www.youtube.com/watch?v=dX0z04nUHTc",
+    videoTitle: "Effective business negotiation techniques in English",
   },
   {
     number: 4,
@@ -51,6 +59,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'email etiquette, CC/BCC, attachments, and netiquette',
     grammarTopicName: 'Modals of Obligation',
     speakingPrompt: 'Explain the rules you follow for writing a professional email at work.',
+    videoUrl: "https://www.youtube.com/watch?v=1XctnF7C74s",
+    videoTitle: "8 Email Etiquette Tips - How to Write Better Emails at Work",
   },
   {
     number: 5,
@@ -61,6 +71,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'brand positioning, target audience, and campaigns',
     grammarTopicName: 'Comparatives and Superlatives',
     speakingPrompt: 'Compare two products or services you know well in terms of how they are marketed.',
+    videoUrl: "https://www.youtube.com/watch?v=sO4te2QNsHY",
+    videoTitle: "What Is Branding? 4 Minute Crash Course.",
   },
   {
     number: 6,
@@ -71,6 +83,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'computer components, peripherals, and storage devices',
     grammarTopicName: 'Present Continuous for Future Arrangements',
     speakingPrompt: "Describe what new hardware you're planning to set up or buy soon.",
+    videoUrl: "https://www.youtube.com/watch?v=xasX3jAAnUE",
+    videoTitle: "Every Computer Component Explained In 12 Minutes",
   },
   {
     number: 7,
@@ -81,6 +95,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'job postings, interviews, and onboarding',
     grammarTopicName: 'Used to / Would for Past Habits',
     speakingPrompt: 'Talk about how hiring used to work at a previous job compared to now.',
+    videoUrl: "https://www.youtube.com/watch?v=Fojxyxpc04Q",
+    videoTitle: "How Companies Actually Hire People | Real Hiring Process Explained",
   },
   {
     number: 8,
@@ -91,6 +107,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'installing, updating, and licensing software',
     grammarTopicName: 'Passive Voice (Simple Tenses)',
     speakingPrompt: 'Describe how a piece of software you use every day gets installed and updated.',
+    videoUrl: "https://www.youtube.com/watch?v=erxJ64qh86M",
+    videoTitle: "What is Software? Applications, Utilities, and Operating Systems Explained",
   },
   {
     number: 9,
@@ -101,6 +119,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'acquisitions, stakeholders, and due diligence',
     grammarTopicName: 'Third Conditional',
     speakingPrompt: 'Describe what would have happened if a recent deal you know of had fallen through.',
+    videoUrl: "https://www.youtube.com/watch?v=WBHzCDgEtVQ",
+    videoTitle: "Mergers and Acquisitions Explained: A Crash Course on M&A",
   },
   {
     number: 10,
@@ -111,6 +131,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'reporting bugs, escalation, and support tickets',
     grammarTopicName: 'Reported Speech',
     speakingPrompt: 'Report what a colleague told you about a recent technical issue.',
+    videoUrl: "https://www.youtube.com/watch?v=zoRe-1r0SwM",
+    videoTitle: "A Day in the Life of an IT Help Desk Technician",
   },
   {
     number: 11,
@@ -121,6 +143,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'budgets, forecasts, and cost control',
     grammarTopicName: 'Relative Clauses',
     speakingPrompt: 'Describe a budget decision at work that affected the team you work with.',
+    videoUrl: "https://www.youtube.com/watch?v=2xr2HuwHlg8",
+    videoTitle: "Financial Management Explained in 11 minutes",
   },
   {
     number: 12,
@@ -131,6 +155,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'tables, queries, backups, and data integrity',
     grammarTopicName: 'Passive Voice (All Tenses)',
     speakingPrompt: 'Explain how data is stored and backed up in a system you work with.',
+    videoUrl: "https://www.youtube.com/watch?v=iuL69sAyuxQ",
+    videoTitle: "What Is a Database? (Simple Explanation for Beginners)",
   },
   {
     number: 13,
@@ -141,6 +167,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'regulations, audits, and liability',
     grammarTopicName: 'Modals of Deduction',
     speakingPrompt: 'Speculate about what might have caused a compliance issue you have heard about.',
+    videoUrl: "https://www.youtube.com/watch?v=wlZOC2iK4wE",
+    videoTitle: "What is Compliance Risk Management?",
   },
   {
     number: 14,
@@ -151,6 +179,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'layout, usability, responsive design, and accessibility',
     grammarTopicName: 'Gerunds vs Infinitives',
     speakingPrompt: 'Describe what you enjoy and dislike about designing or using a particular website.',
+    videoUrl: "https://www.youtube.com/watch?v=nZhxQt-X1Sc",
+    videoTitle: "What is UX? User Experience Explained For Beginners",
   },
   {
     number: 15,
@@ -161,6 +191,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'suppliers, inventory, and shipping',
     grammarTopicName: 'Articles',
     speakingPrompt: 'Describe a supply chain delay you have experienced or heard about.',
+    videoUrl: "https://www.youtube.com/watch?v=36lrW_8q36w",
+    videoTitle: "Understanding Logistic Supply Chains",
   },
   {
     number: 16,
@@ -171,6 +203,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'encryption, phishing, firewalls, and data breaches',
     grammarTopicName: 'Mixed Conditionals',
     speakingPrompt: 'Discuss what you would do differently now if your company had had a data breach last year.',
+    videoUrl: "https://www.youtube.com/watch?v=tPQwevg4-PI",
+    videoTitle: "Cybersecurity Explained: What Beginners Need to Know",
   },
   {
     number: 17,
@@ -181,6 +215,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'vision, stakeholder alignment, and long-term planning',
     grammarTopicName: 'Inversion for Emphasis',
     speakingPrompt: "Describe a leadership decision you've rarely seen handled well, and why.",
+    videoUrl: "https://www.youtube.com/watch?v=BK6tNknggbU",
+    videoTitle: "What is Corporate Strategy?",
   },
   {
     number: 18,
@@ -191,6 +227,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'scaling, uptime, hosting, and cloud providers',
     grammarTopicName: 'Cleft Sentences',
     speakingPrompt: 'Explain what it was that convinced your team to move to the cloud (real or hypothetical).',
+    videoUrl: "https://www.youtube.com/watch?v=6WdvPGQ_tn0",
+    videoTitle: "What Is Cloud Computing? Cloud Infrastructure and Cloud Services Explained",
   },
   {
     number: 19,
@@ -201,6 +239,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'damage control, public statements, and reputation',
     grammarTopicName: 'Subjunctive Mood',
     speakingPrompt: 'Suggest what a company should do after a public relations crisis.',
+    videoUrl: "https://www.youtube.com/watch?v=pcnLq93u1ls",
+    videoTitle: "Crisis Management Explained - Public Relations",
   },
   {
     number: 20,
@@ -211,6 +251,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'sprints, standups, backlogs, and retrospectives',
     grammarTopicName: 'Advanced Modals of Criticism',
     speakingPrompt: 'Criticize a project process that could have been planned better, and explain why.',
+    videoUrl: "https://www.youtube.com/watch?v=2Z-kjRYVWwY",
+    videoTitle: "What is Scrum? A Beginner's Guide to Agile Project Management",
   },
   {
     number: 21,
@@ -221,6 +263,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'market entry, localization, and cross-border trade',
     grammarTopicName: 'Participle Clauses',
     speakingPrompt: 'Describe the challenges a company faces when expanding into a new country.',
+    videoUrl: "https://www.youtube.com/watch?v=VsE0Qq-msFY",
+    videoTitle: "International Business Explained in 15 minutes",
   },
   {
     number: 22,
@@ -231,6 +275,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'machine learning, automation, and AI tools at work',
     grammarTopicName: 'Ellipsis and Substitution',
     speakingPrompt: 'Discuss whether AI tools have changed how you work, and how.',
+    videoUrl: "https://www.youtube.com/watch?v=W8QYep1liN0",
+    videoTitle: "Automation vs. Augmentation: When Should AI Take the Lead?",
   },
   {
     number: 23,
@@ -241,6 +287,8 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'disruption, pilot projects, and organizational change',
     grammarTopicName: 'Nuanced Prepositions',
     speakingPrompt: 'Describe a change at your company that people were initially resistant to.',
+    videoUrl: "https://www.youtube.com/watch?v=xGsxO2VAT9I",
+    videoTitle: "Innovation and Change Management in Modern Businesses",
   },
   {
     number: 24,
@@ -251,5 +299,7 @@ export const LESSON_CURRICULUM: LessonSeed[] = [
     vocabTheme: 'microservices, scalability, technical debt, and system design',
     grammarTopicName: 'Discourse Markers and Hedging',
     speakingPrompt: "Explain a system design trade-off your team has debated, hedging where you're not fully certain.",
+    videoUrl: "https://www.youtube.com/watch?v=A3UqKovJr7s",
+    videoTitle: "How to Design Software Architecture for Scalability",
   },
 ];

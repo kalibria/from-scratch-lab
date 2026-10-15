@@ -30,6 +30,8 @@ async function seedLessons() {
       vocabTheme: seed.vocabTheme,
       grammarTopicId: topic.id,
       speakingPrompt: seed.speakingPrompt,
+      videoUrl: seed.videoUrl,
+      videoTitle: seed.videoTitle,
     });
 
     const vocab = await generateLessonVocab(seed.vocabTheme, seed.level);

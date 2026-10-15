@@ -27,6 +27,8 @@ export type LessonProgress = {
   grammarDone: boolean;
   writingDone: boolean;
   speakingDone: boolean;
+  readingDone: boolean;
+  videoDone: boolean;
   checkpointDone: boolean;
   checkpointScore: number | null;
 };
@@ -46,6 +48,8 @@ export type LessonDetail = LessonSummary & {
   grammarTopicId: number;
   grammarTopicName: string;
   speakingPrompt: string;
+  videoUrl: string | null;
+  videoTitle: string | null;
 };
 
 export type ReturnDestination = { name: 'dashboard' } | { name: 'lesson'; lessonId: number };

@@ -3,7 +3,15 @@ import { Spinner } from '../components/Spinner.js';
 
 type LessonHubProps = { onOpenLesson: (lessonId: number) => void; onDone: () => void };
 
-const DONE_KEYS = ['vocabDone', 'grammarDone', 'writingDone', 'speakingDone', 'checkpointDone'] as const;
+const DONE_KEYS = [
+  'vocabDone',
+  'grammarDone',
+  'writingDone',
+  'speakingDone',
+  'readingDone',
+  'videoDone',
+  'checkpointDone',
+] as const;
 
 export function LessonHub({ onOpenLesson, onDone }: LessonHubProps) {
   const { phase, retry } = useLessonHub();
@@ -46,7 +54,7 @@ export function LessonHub({ onOpenLesson, onDone }: LessonHubProps) {
                 <span className="text-sm font-semibold">
                   Lesson {lesson.number}: {lesson.title}
                 </span>
-                <span className="text-xs text-ink-soft">{doneCount}/5</span>
+                <span className="text-xs text-ink-soft">{doneCount}/7</span>
               </div>
               <p className="mt-1 text-xs text-ink-soft">
                 {lesson.level} · {lesson.sourceBook === 'ict_in_use' ? 'IT' : 'Business'}

@@ -11,6 +11,8 @@ export const createPhraseSchema = z.object({
     'lesson_seed',
     'lesson_writing',
     'lesson_speaking',
+    'lesson_reading',
+    'lesson_video',
     'grammar_feedback',
   ]),
   category: z.string().optional(),
@@ -49,7 +51,7 @@ export const confirmLessonPhrasesSchema = z.object({
       }),
     )
     .min(1),
-  source: z.enum(['lesson_writing', 'lesson_speaking', 'grammar_feedback']),
+  source: z.enum(['lesson_writing', 'lesson_speaking', 'lesson_reading', 'lesson_video', 'grammar_feedback']),
 });
 
 export type ConfirmLessonPhrasesInput = z.infer<typeof confirmLessonPhrasesSchema>;
