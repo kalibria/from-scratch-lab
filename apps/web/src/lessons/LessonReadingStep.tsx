@@ -6,7 +6,7 @@ import { SuggestedPhrasesConfirm } from '../components/SuggestedPhrasesConfirm.j
 type LessonReadingStepProps = { lessonId: number; onDone: () => void };
 
 export function LessonReadingStep({ lessonId, onDone }: LessonReadingStepProps) {
-  const { phase, utterance, setUtterance, startDiscussing, submitTurn, continueOrFinish, finish, retry } =
+  const { phase, utterance, setUtterance, sourceUrl, sourceTitle, startDiscussing, submitTurn, continueOrFinish, finish, retry } =
     useLessonReadingStep(lessonId);
 
   const finishAndExit = async () => {
@@ -57,6 +57,16 @@ export function LessonReadingStep({ lessonId, onDone }: LessonReadingStepProps) 
         <div className="mb-5 rounded-2xl border border-border bg-surface-soft px-5 py-6 font-serif text-lg">
           {phase.text}
         </div>
+        {sourceUrl && (
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mb-5 block text-xs text-ink-soft underline"
+          >
+            Inspired by: {sourceTitle ?? sourceUrl}
+          </a>
+        )}
         <button
           onClick={startDiscussing}
           className="w-full rounded-2xl bg-accent px-4 py-3.5 font-semibold text-white"

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import {
   lessonProgressStepSchema,
   submitWritingAttemptSchema,
@@ -12,6 +12,7 @@ import {
   lessons,
   lessonProgress,
   lessonWritingAttempts,
+  lessonReadingBank,
   lessonReadingSessions,
   lessonReadingTurns,
   grammarTopics,
@@ -47,6 +48,37 @@ async function sampleLessonVocab(vocabCategory: string): Promise<string[]> {
     .limit(READING_PHRASE_SAMPLE_SIZE);
 
   return rows.map((row) => row.enText);
+}
+
+async function selectUnseenReadingBankEntry(lessonId: number) {
+  const [row] = await db
+    .select({ entry: lessonReadingBank })
+    .from(lessonReadingBank)
+    .leftJoin(lessonReadingSessions, eq(lessonReadingSessions.lessonReadingBankId, lessonReadingBank.id))
+    .where(and(eq(lessonReadingBank.lessonId, lessonId), isNull(lessonReadingSessions.id)))
+    .orderBy(sql`random()`)
+    .limit(1);
+
+  return row?.entry ?? null;
+}
+
+async function selectLeastRecentlyUsedReadingBankEntry(lessonId: number) {
+  const lastUsedAt = sql<string>`max(${lessonReadingSessions.createdAt})`;
+
+  const [row] = await db
+    .select({ entry: lessonReadingBank, lastUsedAt })
+    .from(lessonReadingBank)
+    .innerJoin(lessonReadingSessions, eq(lessonReadingSessions.lessonReadingBankId, lessonReadingBank.id))
+    .where(eq(lessonReadingBank.lessonId, lessonId))
+    .groupBy(lessonReadingBank.id)
+    .orderBy(asc(lastUsedAt))
+    .limit(1);
+
+  return row?.entry ?? null;
+}
+
+async function selectReadingBankEntry(lessonId: number) {
+  return (await selectUnseenReadingBankEntry(lessonId)) ?? (await selectLeastRecentlyUsedReadingBankEntry(lessonId));
 }
 
 function toProgressSummary(progress: typeof lessonProgress.$inferSelect | undefined) {
@@ -208,12 +240,37 @@ lessonsRouter.post('/:id/reading/start', async (req, res) => {
     return res.status(404).json({ error: 'lesson not found' });
   }
 
-  const vocab = await sampleLessonVocab(row.lesson.vocabCategory);
-  const { text, openingQuestion } = await generateLessonReading(row.lesson.vocabTheme, row.lesson.level, vocab);
+  const bankEntry = await selectReadingBankEntry(id);
+
+  let textContent: string;
+  let openingQuestion: string;
+  let sourceUrl: string | null = null;
+  let sourceTitle: string | null = null;
+  let lessonReadingBankId: number | null = null;
+
+  if (bankEntry) {
+    textContent = bankEntry.textContent;
+    openingQuestion = bankEntry.openingQuestion;
+    sourceUrl = bankEntry.sourceUrl;
+    sourceTitle = bankEntry.sourceTitle;
+    lessonReadingBankId = bankEntry.id;
+  } else {
+    const vocab = await sampleLessonVocab(row.lesson.vocabCategory);
+    const generated = await generateLessonReading(row.lesson.vocabTheme, row.lesson.level, vocab);
+    textContent = generated.text;
+    openingQuestion = generated.openingQuestion;
+  }
 
   const [readingSession] = await db
     .insert(lessonReadingSessions)
-    .values({ sessionId: parsed.data.sessionId, lessonId: id, textContent: text })
+    .values({
+      sessionId: parsed.data.sessionId,
+      lessonId: id,
+      lessonReadingBankId,
+      textContent,
+      sourceUrl,
+      sourceTitle,
+    })
     .returning();
 
   await db.insert(lessonReadingTurns).values({
@@ -222,7 +279,7 @@ lessonsRouter.post('/:id/reading/start', async (req, res) => {
     content: openingQuestion,
   });
 
-  res.status(201).json({ id: readingSession.id, textContent: text, openingQuestion });
+  res.status(201).json({ id: readingSession.id, textContent, openingQuestion, sourceUrl, sourceTitle });
 });
 
 lessonsRouter.post('/reading-turn', async (req, res) => {

@@ -29,6 +29,8 @@ export function useLessonReadingStep(lessonId: number) {
   const [session, setSession] = useState<Session | null>(null);
   const [readingSessionId, setReadingSessionId] = useState<number | null>(null);
   const [openingQuestion, setOpeningQuestion] = useState('');
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
+  const [sourceTitle, setSourceTitle] = useState<string | null>(null);
 
   async function load() {
     setPhase({ status: 'loading' });
@@ -49,6 +51,8 @@ export function useLessonReadingStep(lessonId: number) {
     setSession(newSession);
     setReadingSessionId(started.id);
     setOpeningQuestion(started.openingQuestion);
+    setSourceUrl(started.sourceUrl);
+    setSourceTitle(started.sourceTitle);
     setPhase({ status: 'reading', text: started.textContent });
   }
 
@@ -125,6 +129,8 @@ export function useLessonReadingStep(lessonId: number) {
     phase,
     utterance,
     setUtterance,
+    sourceUrl,
+    sourceTitle,
     startDiscussing,
     submitTurn,
     continueOrFinish,

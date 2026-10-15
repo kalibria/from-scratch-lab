@@ -168,6 +168,18 @@ export const lessonProgress = pgTable('lesson_progress', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+export const lessonReadingBank = pgTable('lesson_reading_bank', {
+  id: serial('id').primaryKey(),
+  lessonId: integer('lesson_id')
+    .references(() => lessons.id)
+    .notNull(),
+  textContent: text('text_content').notNull(),
+  openingQuestion: text('opening_question').notNull(),
+  sourceUrl: text('source_url'),
+  sourceTitle: text('source_title'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const lessonReadingSessions = pgTable('lesson_reading_sessions', {
   id: serial('id').primaryKey(),
   sessionId: integer('session_id')
@@ -176,7 +188,10 @@ export const lessonReadingSessions = pgTable('lesson_reading_sessions', {
   lessonId: integer('lesson_id')
     .references(() => lessons.id)
     .notNull(),
+  lessonReadingBankId: integer('lesson_reading_bank_id').references(() => lessonReadingBank.id),
   textContent: text('text_content').notNull(),
+  sourceUrl: text('source_url'),
+  sourceTitle: text('source_title'),
   status: text('status').notNull().default('active'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
